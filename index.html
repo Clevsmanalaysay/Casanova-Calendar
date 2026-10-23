@@ -463,39 +463,78 @@
                 <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <div class="px-6 pt-5">
-                <button type="button" onclick="handleGoogleSignIn()" class="w-full py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-xs rounded-xl transition shadow-sm border border-gray-300 flex items-center justify-center space-x-2">
-                    <i class="fa-brands fa-google text-sm"></i>
-                    <span>Continue with Google</span>
-                </button>
-                <div class="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-wide my-4">
-                    <div class="flex-1 h-px bg-dark-600"></div>
-                    <span>or use email</span>
-                    <div class="flex-1 h-px bg-dark-600"></div>
+            <div id="authMainPanel">
+                <div class="px-6 pt-5">
+                    <button type="button" onclick="handleGoogleSignIn()" class="w-full py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-xs rounded-xl transition shadow-sm border border-gray-300 flex items-center justify-center space-x-2">
+                        <i class="fa-brands fa-google text-sm"></i>
+                        <span>Continue with Google</span>
+                    </button>
+                    <button type="button" onclick="openPhoneAuthPanel()" class="w-full mt-2 py-2.5 bg-dark-700 hover:bg-dark-600 text-slate-200 font-semibold text-xs rounded-xl transition border border-dark-600 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-phone text-sm"></i>
+                        <span>Continue with Phone Number</span>
+                    </button>
+                    <div class="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-wide my-4">
+                        <div class="flex-1 h-px bg-dark-600"></div>
+                        <span>or use email</span>
+                        <div class="flex-1 h-px bg-dark-600"></div>
+                    </div>
+                    <div class="flex bg-dark-900 rounded-lg p-1 border border-dark-600">
+                        <button id="authTabSignIn" type="button" onclick="switchAuthTab('signin')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">Sign In</button>
+                        <button id="authTabSignUp" type="button" onclick="switchAuthTab('signup')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">Sign Up</button>
+                    </div>
                 </div>
-                <div class="flex bg-dark-900 rounded-lg p-1 border border-dark-600">
-                    <button id="authTabSignIn" type="button" onclick="switchAuthTab('signin')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">Sign In</button>
-                    <button id="authTabSignUp" type="button" onclick="switchAuthTab('signup')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">Sign Up</button>
+
+                <div class="p-6 space-y-3">
+                    <div id="authError" class="hidden px-3 py-2 bg-rose-950 border border-rose-800 text-rose-400 text-xs rounded-lg"></div>
+                    <div id="authNameField" class="hidden">
+                        <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Full Name</label>
+                        <input id="authName" type="text" autocomplete="name" placeholder="How your name should appear to others" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Email</label>
+                        <input id="authEmail" type="email" autocomplete="username" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Password</label>
+                        <input id="authPassword" type="password" autocomplete="current-password" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                    </div>
+                    <button id="authForgotLink" type="button" onclick="handlePasswordReset()" class="text-[11px] text-gold-400 hover:text-gold-300 hover:underline">Forgot password?</button>
+
+                    <button id="authSubmitBtn" type="button" onclick="handleAuthSubmit()" class="w-full py-2.5 gold-gradient-bg text-black font-bold text-xs rounded-xl transition shadow-lg mt-2">Sign In</button>
+
+                    <p class="text-[10px] text-slate-500 text-center pt-1">New accounts need admin approval before they can add, edit, or delete bookings.</p>
                 </div>
             </div>
 
-            <div class="p-6 space-y-3">
-                <div id="authError" class="hidden px-3 py-2 bg-rose-950 border border-rose-800 text-rose-400 text-xs rounded-lg"></div>
-                <div id="authNameField" class="hidden">
-                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Full Name</label>
-                    <input id="authName" type="text" autocomplete="name" placeholder="How your name should appear to others" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
-                </div>
-                <div>
-                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Email</label>
-                    <input id="authEmail" type="email" autocomplete="username" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
-                </div>
-                <div>
-                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Password</label>
-                    <input id="authPassword" type="password" autocomplete="current-password" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
-                </div>
-                <button id="authForgotLink" type="button" onclick="handlePasswordReset()" class="text-[11px] text-gold-400 hover:text-gold-300 hover:underline">Forgot password?</button>
+            <!-- PHONE SIGN-UP PANEL (sign-up only — phone accounts always start pending,
+                 no admin pre-approval shortcut like email invites get) -->
+            <div id="phoneAuthPanel" class="hidden p-6 space-y-3">
+                <button type="button" onclick="resetPhoneAuthPanel()" class="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-left"></i><span>Back</span>
+                </button>
+                <div id="phoneAuthError" class="hidden px-3 py-2 bg-rose-950 border border-rose-800 text-rose-400 text-xs rounded-lg"></div>
 
-                <button id="authSubmitBtn" type="button" onclick="handleAuthSubmit()" class="w-full py-2.5 gold-gradient-bg text-black font-bold text-xs rounded-xl transition shadow-lg mt-2">Sign In</button>
+                <div id="phoneAuthNumberStep" class="space-y-3">
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Full Name</label>
+                        <input id="phoneAuthName" type="text" autocomplete="name" placeholder="How your name should appear to others" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Phone Number</label>
+                        <input id="phoneAuthNumber" type="tel" autocomplete="tel" placeholder="+63 9XX XXX XXXX" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 placeholder-slate-500 outline-none transition">
+                        <p class="text-[10px] text-slate-500 mt-1">Include the country code (e.g. +63 for the Philippines).</p>
+                    </div>
+                    <div id="recaptchaContainer" class="flex justify-center"></div>
+                    <button id="phoneSendCodeBtn" type="button" onclick="sendPhoneCode()" class="w-full py-2.5 gold-gradient-bg text-black font-bold text-xs rounded-xl transition shadow-lg">Send Code</button>
+                </div>
+
+                <div id="phoneAuthCodeStep" class="hidden space-y-3">
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Verification Code</label>
+                        <input id="phoneAuthCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 placeholder-slate-500 outline-none transition">
+                    </div>
+                    <button id="phoneVerifyBtn" type="button" onclick="verifyPhoneCode()" class="w-full py-2.5 gold-gradient-bg text-black font-bold text-xs rounded-xl transition shadow-lg">Verify & Continue</button>
+                </div>
 
                 <p class="text-[10px] text-slate-500 text-center pt-1">New accounts need admin approval before they can add, edit, or delete bookings.</p>
             </div>
@@ -518,7 +557,8 @@
         let initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc, getDoc,
             onSnapshot, query, where, orderBy, limit, serverTimestamp;
         let getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-            signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup;
+            signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup,
+            RecaptchaVerifier, signInWithPhoneNumber;
 
         // ============================================================
         // ONE-TIME SETUP: paste your Firebase project config below.
@@ -557,6 +597,8 @@
         let recentDeletionsUnsub = null;
         let recentDeletionsList = [];
         let authModalMode = 'signin';
+        let recaptchaVerifier = null;        // reCAPTCHA widget backing phone sign-in
+        let phoneConfirmationResult = null;  // pending signInWithPhoneNumber() result, awaiting the code
         let currentAdminTab = 'pending';
         let currentPage = 'calendar'; // 'calendar' | 'admin' | 'financials'
 
@@ -592,8 +634,16 @@
         }
         function staffDisplayLabel(entry) {
             if (!entry) return 'Unknown';
-            return entry.displayName || entry.email || 'Unknown';
+            return entry.displayName || entry.email || entry.phone || 'Unknown';
         }
+        // A phone-signed-up user has no email, so every "who did this" attribution
+        // field (createdByEmail, updatedByEmail, etc.) falls back to the phone number.
+        // The Firestore rules accept either (see callerIdentity() there) — matches
+        // this exactly, field name kept as "...Email" for backwards compatibility.
+        function currentUserIdentity() {
+            return (currentUser && (currentUser.email || currentUser.phoneNumber)) || '';
+        }
+
         // Regular staff are view-only — only admin/owner can add, edit, or delete
         // bookings. Enforced here for the UI AND in the Firestore rules (bookings
         // create/update/delete require isFinance()), so this isn't just a UI hide.
@@ -704,7 +754,7 @@
                 const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
                 ({ initializeApp } = appMod);
                 ({ getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc, getDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp } = fsMod);
-                ({ getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } = authMod);
+                ({ getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } = authMod);
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
@@ -1007,7 +1057,7 @@
 
             const label = staffDisplayLabel(myStaffStatus);
             container.innerHTML = `
-                <span class="hidden sm:inline text-xs text-slate-400 max-w-[160px] truncate" title="${escapeHtml(currentUser.email)}">${escapeHtml(label)}</span>
+                <span class="hidden sm:inline text-xs text-slate-400 max-w-[160px] truncate" title="${escapeHtml(currentUserIdentity())}">${escapeHtml(label)}</span>
                 ${financialsBtn}
                 ${adminBtn}
                 <button onclick="signOutUser()" title="Sign out" class="p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-slate-400 hover:text-slate-200 transition"><i class="fa-solid fa-right-from-bracket"></i></button>
@@ -1022,12 +1072,17 @@
             document.getElementById('authEmail').value = '';
             document.getElementById('authPassword').value = '';
             syncAuthModalTabs();
+            // Always reopen on the main (Google/email) panel, never stuck on the phone
+            // sub-panel from a previous visit.
+            document.getElementById('phoneAuthPanel').classList.add('hidden');
+            document.getElementById('authMainPanel').classList.remove('hidden');
             document.getElementById('authModal').classList.remove('hidden');
             pushHistorySnapshot();
         }
 
         function closeAuthModal() {
             navigateBack(() => { document.getElementById('authModal').classList.add('hidden'); });
+            teardownPhoneAuth();
         }
 
         function switchAuthTab(mode) {
@@ -1055,7 +1110,12 @@
                 'auth/invalid-credential': 'Incorrect email or password.',
                 'auth/too-many-requests': 'Too many attempts — please wait a bit and try again.',
                 'auth/popup-blocked': 'Your browser blocked the Google sign-in popup — please allow popups for this site and try again.',
-                'auth/account-exists-with-different-credential': 'An account with that email already exists using a different sign-in method — try signing in with email and password instead.'
+                'auth/account-exists-with-different-credential': 'An account with that email already exists using a different sign-in method — try signing in with email and password instead.',
+                'auth/invalid-phone-number': "That doesn't look like a valid phone number — include the country code (e.g. +63 9XX XXX XXXX).",
+                'auth/missing-phone-number': 'Please enter a phone number.',
+                'auth/invalid-verification-code': "That code doesn't match — double check it and try again.",
+                'auth/code-expired': 'That code has expired — go back and request a new one.',
+                'auth/captcha-check-failed': 'The verification check failed — please try again.'
             };
             return map[err.code] || (err.message || 'Something went wrong — please try again.');
         }
@@ -1064,24 +1124,32 @@
         // on first-ever sign-in only (never overwrites an existing one, which would reset
         // an already-approved/admin account back to 'pending'), consuming a matching
         // Invite-tab pre-approval if one exists so the person skips the pending wait.
-        async function createStaffRecordIfMissing(uid, rawEmail, displayName) {
+        // identity is { email } for email/Google sign-up, or { phone } for phone
+        // sign-up. Only email identities get an invite-lookup shortcut — phone
+        // sign-ups always start pending (no pre-approval path for them yet).
+        async function createStaffRecordIfMissing(uid, identity, displayName) {
             const existing = await getDoc(doc(db, 'staff', uid));
             if (existing.exists()) {
                 return { ...existing.data(), preApproved: false };
             }
 
-            const inviteKey = (rawEmail || '').toLowerCase();
+            const rawEmail = identity.email || null;
+            const rawPhone = identity.phone || null;
             let preApproved = false;
-            try {
-                const inviteSnap = await getDoc(doc(db, 'invites', inviteKey));
-                preApproved = inviteSnap.exists();
-            } catch (lookupErr) {
-                console.error('Invite lookup failed:', lookupErr);
+            if (rawEmail) {
+                const inviteKey = rawEmail.toLowerCase();
+                try {
+                    const inviteSnap = await getDoc(doc(db, 'invites', inviteKey));
+                    preApproved = inviteSnap.exists();
+                } catch (lookupErr) {
+                    console.error('Invite lookup failed:', lookupErr);
+                }
             }
 
             const data = {
-                email: rawEmail,
-                displayName: displayName || rawEmail,
+                ...(rawEmail ? { email: rawEmail } : {}),
+                ...(rawPhone ? { phone: rawPhone } : {}),
+                displayName: displayName || rawEmail || rawPhone,
                 status: preApproved ? 'approved' : 'pending',
                 role: 'staff',
                 requestedAt: serverTimestamp(),
@@ -1089,8 +1157,8 @@
             };
             await setDoc(doc(db, 'staff', uid), data);
 
-            if (preApproved) {
-                deleteDoc(doc(db, 'invites', inviteKey)).catch(e => console.error('Could not consume invite:', e));
+            if (preApproved && rawEmail) {
+                deleteDoc(doc(db, 'invites', rawEmail.toLowerCase())).catch(e => console.error('Could not consume invite:', e));
             }
 
             return { ...data, preApproved };
@@ -1123,7 +1191,7 @@
                     // email/password accounts are created with exactly the lowercased
                     // email above, so cred.user.email will match it — safe to reuse here.
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
-                    const result = await createStaffRecordIfMissing(cred.user.uid, email, name);
+                    const result = await createStaffRecordIfMissing(cred.user.uid, { email }, name);
                     closeAuthModal();
                     showToast(result.preApproved
                         ? "Account created — you were already invited, so you're in!"
@@ -1152,7 +1220,7 @@
                 // Google (not us) assigns this account's email, so it's passed through
                 // unmodified — it must match request.auth.token.email exactly for the
                 // Firestore security rule to accept the write.
-                const result = await createStaffRecordIfMissing(cred.user.uid, cred.user.email || '', cred.user.displayName);
+                const result = await createStaffRecordIfMissing(cred.user.uid, { email: cred.user.email || '' }, cred.user.displayName);
                 closeAuthModal();
                 showToast(result.preApproved
                     ? "Signed in with Google — you were already invited, so you're in!"
@@ -1190,6 +1258,113 @@
                 showToast('Password reset email sent — check your inbox.');
             } catch (err) {
                 console.error('Password reset failed:', err);
+                errorEl.textContent = authErrorMessage(err);
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // PHONE SIGN-IN (works for both first-time sign-up and returning sign-in —
+        // signInWithPhoneNumber doesn't distinguish the two, same as Google above.
+        // Phone accounts always start pending; there's no invite/pre-approval shortcut
+        // for them yet, unlike email.)
+        function teardownPhoneAuth() {
+            phoneConfirmationResult = null;
+            if (recaptchaVerifier) {
+                try { recaptchaVerifier.clear(); } catch (e) { /* already gone */ }
+                recaptchaVerifier = null;
+            }
+        }
+
+        function openPhoneAuthPanel() {
+            if (!auth) {
+                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
+                return;
+            }
+            document.getElementById('authMainPanel').classList.add('hidden');
+            document.getElementById('phoneAuthPanel').classList.remove('hidden');
+            document.getElementById('phoneAuthNumberStep').classList.remove('hidden');
+            document.getElementById('phoneAuthCodeStep').classList.add('hidden');
+            document.getElementById('phoneAuthError').classList.add('hidden');
+            document.getElementById('phoneAuthName').value = '';
+            document.getElementById('phoneAuthNumber').value = '';
+            document.getElementById('phoneAuthCode').value = '';
+            renderPhoneRecaptcha();
+        }
+
+        function resetPhoneAuthPanel() {
+            teardownPhoneAuth();
+            document.getElementById('phoneAuthPanel').classList.add('hidden');
+            document.getElementById('authMainPanel').classList.remove('hidden');
+        }
+
+        function renderPhoneRecaptcha() {
+            teardownPhoneAuth();
+            try {
+                recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptchaContainer', { size: 'normal' });
+                recaptchaVerifier.render().catch(err => console.error('reCAPTCHA render failed:', err));
+            } catch (err) {
+                console.error('Could not set up reCAPTCHA:', err);
+            }
+        }
+
+        async function sendPhoneCode() {
+            const errorEl = document.getElementById('phoneAuthError');
+            errorEl.classList.add('hidden');
+            const name = document.getElementById('phoneAuthName').value.trim();
+            const rawNumber = document.getElementById('phoneAuthNumber').value.trim();
+            if (!name) {
+                errorEl.textContent = 'Please enter your name.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (!rawNumber.startsWith('+') || rawNumber.length < 8) {
+                errorEl.textContent = 'Enter your phone number in international format, starting with + and the country code (e.g. +63 9XX XXX XXXX).';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (!recaptchaVerifier) renderPhoneRecaptcha();
+            try {
+                phoneConfirmationResult = await signInWithPhoneNumber(auth, rawNumber, recaptchaVerifier);
+                document.getElementById('phoneAuthNumberStep').classList.add('hidden');
+                document.getElementById('phoneAuthCodeStep').classList.remove('hidden');
+                showToast('Code sent — check your phone for a text message.');
+            } catch (err) {
+                console.error('Send phone code failed:', err);
+                errorEl.textContent = authErrorMessage(err);
+                errorEl.classList.remove('hidden');
+                // A used/expired reCAPTCHA token can't be reused — reset the widget so
+                // the visitor can retry without reloading the page.
+                if (recaptchaVerifier) {
+                    recaptchaVerifier.render().then(widgetId => {
+                        if (window.grecaptcha) window.grecaptcha.reset(widgetId);
+                    }).catch(() => {});
+                }
+            }
+        }
+
+        async function verifyPhoneCode() {
+            const errorEl = document.getElementById('phoneAuthError');
+            errorEl.classList.add('hidden');
+            const code = document.getElementById('phoneAuthCode').value.trim();
+            if (!code) {
+                errorEl.textContent = 'Enter the code you received by text.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (!phoneConfirmationResult) {
+                errorEl.textContent = 'Something went wrong — please go back and request a new code.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            const name = document.getElementById('phoneAuthName').value.trim();
+            try {
+                const cred = await phoneConfirmationResult.confirm(code);
+                await createStaffRecordIfMissing(cred.user.uid, { phone: cred.user.phoneNumber || '' }, name);
+                resetPhoneAuthPanel();
+                closeAuthModal();
+                showToast('Signed in with phone! An admin needs to approve your account before you can view or manage bookings.');
+            } catch (err) {
+                console.error('Verify phone code failed:', err);
                 errorEl.textContent = authErrorMessage(err);
                 errorEl.classList.remove('hidden');
             }
@@ -1259,7 +1434,7 @@
                     <div class="flex items-center justify-between gap-3 p-3 bg-dark-900 border border-dark-600 rounded-xl">
                         <div class="min-w-0">
                             <p class="text-xs font-semibold text-slate-100 truncate">${escapeHtml(staffDisplayLabel(s))}</p>
-                            <p class="text-[10px] text-slate-500 truncate">${escapeHtml(s.email || '')}</p>
+                            <p class="text-[10px] text-slate-500 truncate">${escapeHtml(s.email || s.phone || '')}</p>
                         </div>
                         <div class="flex items-center space-x-2 shrink-0">
                             <button onclick="denyStaff('${s.uid}')" class="px-2.5 py-1.5 bg-dark-700 hover:bg-rose-950 text-rose-400 text-xs font-semibold rounded-lg transition border border-dark-600">Deny</button>
@@ -1313,7 +1488,7 @@
                     <div class="flex items-center justify-between gap-3 p-3 bg-dark-900 border border-dark-600 rounded-xl">
                         <div class="min-w-0">
                             <p class="text-xs font-semibold text-slate-100 truncate">${escapeHtml(staffDisplayLabel(s))}${isSelf ? ' <span class="text-slate-500">(you)</span>' : ''}</p>
-                            <p class="text-[10px] text-slate-500 truncate">${escapeHtml(s.email || '')}</p>
+                            <p class="text-[10px] text-slate-500 truncate">${escapeHtml(s.email || s.phone || '')}</p>
                             <div class="flex items-center gap-1.5 mt-1">
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${badgeClass}">${escapeHtml(s.status || 'unknown')}</span>
                                 ${role !== 'staff' ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-gold-500/15 text-gold-400 border-gold-500/40">${escapeHtml(role)}</span>` : ''}
@@ -1357,7 +1532,7 @@
                 await updateDoc(doc(db, 'staff', uid), {
                     status: 'approved',
                     reviewedAt: serverTimestamp(),
-                    reviewedBy: currentUser.email
+                    reviewedBy: currentUserIdentity()
                 });
                 showToast('Staff account approved.');
             } catch (err) {
@@ -1373,7 +1548,7 @@
                 await updateDoc(doc(db, 'staff', uid), {
                     status: 'denied',
                     reviewedAt: serverTimestamp(),
-                    reviewedBy: currentUser.email
+                    reviewedBy: currentUserIdentity()
                 });
                 showToast('Sign-up request denied.');
             } catch (err) {
@@ -1389,7 +1564,7 @@
                 await updateDoc(doc(db, 'staff', uid), {
                     status: 'revoked',
                     reviewedAt: serverTimestamp(),
-                    reviewedBy: currentUser.email
+                    reviewedBy: currentUserIdentity()
                 });
                 showToast('Access revoked.');
             } catch (err) {
@@ -1457,7 +1632,7 @@
             try {
                 await setDoc(doc(db, 'invites', email), {
                     email,
-                    invitedBy: currentUser.email,
+                    invitedBy: currentUserIdentity(),
                     invitedAt: serverTimestamp()
                 });
                 input.value = '';
@@ -1724,7 +1899,7 @@
                     amount,
                     paidAt,
                     createdAt: serverTimestamp(),
-                    createdByEmail: currentUser.email,
+                    createdByEmail: currentUserIdentity(),
                     createdByName: staffDisplayLabel(myStaffStatus)
                 });
                 descInput.value = '';
@@ -1765,7 +1940,7 @@
                     cost: amount,
                     description: (existing && existing.description) || null,
                     updatedAt: serverTimestamp(),
-                    updatedByEmail: currentUser.email,
+                    updatedByEmail: currentUserIdentity(),
                     updatedByName: staffDisplayLabel(myStaffStatus)
                 });
                 showToast('Booking income saved.');
@@ -2100,7 +2275,7 @@
                     endDate: parsed.endDate,
                     rawText: strippedText,
                     createdAt: serverTimestamp(),
-                    createdByEmail: currentUser.email,
+                    createdByEmail: currentUserIdentity(),
                     createdByName: staffDisplayLabel(myStaffStatus)
                 });
 
@@ -2109,7 +2284,7 @@
                         cost: price,
                         description: priceDescription,
                         updatedAt: serverTimestamp(),
-                        updatedByEmail: currentUser.email,
+                        updatedByEmail: currentUserIdentity(),
                         updatedByName: staffDisplayLabel(myStaffStatus)
                     }).catch(err => console.error('Could not auto-save extracted price:', err));
                 }
@@ -2380,7 +2555,7 @@
                     endDate: parsed.endDate,
                     rawText: strippedText,
                     updatedAt: serverTimestamp(),
-                    updatedByEmail: currentUser.email,
+                    updatedByEmail: currentUserIdentity(),
                     updatedByName: staffDisplayLabel(myStaffStatus)
                 });
 
@@ -2392,7 +2567,7 @@
                         cost: price,
                         description: priceDescription,
                         updatedAt: serverTimestamp(),
-                        updatedByEmail: currentUser.email,
+                        updatedByEmail: currentUserIdentity(),
                         updatedByName: staffDisplayLabel(myStaffStatus)
                     }).catch(err => console.error('Could not auto-save extracted price on edit:', err));
                 }
@@ -2425,7 +2600,7 @@
                     const range = target.startDate === target.endDate ? target.startDate : `${target.startDate} to ${target.endDate}`;
                     addDoc(collection(db, 'deletionLog'), {
                         bookingSummary: `${bookingDisplayName(target)} (${range})`,
-                        deletedByEmail: currentUser.email,
+                        deletedByEmail: currentUserIdentity(),
                         deletedByName: staffDisplayLabel(myStaffStatus),
                         deletedAt: serverTimestamp()
                     }).catch(err => console.error('Could not write deletion log:', err));
@@ -2565,6 +2740,10 @@
         window.handleAuthSubmit = handleAuthSubmit;
         window.handleGoogleSignIn = handleGoogleSignIn;
         window.handlePasswordReset = handlePasswordReset;
+        window.openPhoneAuthPanel = openPhoneAuthPanel;
+        window.resetPhoneAuthPanel = resetPhoneAuthPanel;
+        window.sendPhoneCode = sendPhoneCode;
+        window.verifyPhoneCode = verifyPhoneCode;
         window.signOutUser = signOutUser;
         window.openAdminPanel = openAdminPanel;
         window.closeAdminPanel = closeAdminPanel;
