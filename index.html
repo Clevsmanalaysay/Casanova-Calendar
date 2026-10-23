@@ -185,7 +185,18 @@
     </header>
 
     <!-- MAIN APP CONTENT -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+
+        <!-- LOGIN GATE: shown until the visitor is signed in AND admin-approved -->
+        <div id="appGate" class="flex flex-col items-center justify-center text-center py-20 px-4">
+            <i class="fa-solid fa-lock text-3xl text-gold-500 mb-4"></i>
+            <h2 id="gateTitle" class="font-serif text-xl font-bold gold-gradient-text mb-2">Staff Sign-In Required</h2>
+            <p id="gateMessage" class="text-sm text-slate-400 max-w-sm mb-6">This calendar is for Casanova Resort staff only. Sign in or create an account to view and manage bookings.</p>
+            <div id="gateActions" class="flex items-center space-x-3"></div>
+        </div>
+
+        <!-- GATED APP CONTENT -->
+        <div id="appContent" class="hidden space-y-6">
 
         <!-- PASTE BOOKING SECTION -->
         <div class="bg-dark-800 p-5 sm:p-6 rounded-2xl border gold-border gold-border-glow space-y-4">
@@ -266,6 +277,9 @@
                 <!-- Dynamically Populated -->
             </div>
         </div>
+
+        </div>
+        <!-- /GATED APP CONTENT -->
     </main>
 
     <!-- DAY DETAILS MODAL -->
@@ -309,6 +323,10 @@
 
             <div class="p-6 space-y-3">
                 <div id="authError" class="hidden px-3 py-2 bg-rose-950 border border-rose-800 text-rose-400 text-xs rounded-lg"></div>
+                <div id="authNameField" class="hidden">
+                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Full Name</label>
+                    <input id="authName" type="text" autocomplete="name" placeholder="How your name should appear to others" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                </div>
                 <div>
                     <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Email</label>
                     <input id="authEmail" type="email" autocomplete="username" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
@@ -328,20 +346,38 @@
 
     <!-- ADMIN PANEL MODAL -->
     <div id="adminPanelModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-dark-800 rounded-2xl max-w-lg w-full shadow-2xl border gold-border overflow-hidden flex flex-col max-h-[85vh]">
+        <div class="bg-dark-800 rounded-2xl max-w-xl w-full shadow-2xl border gold-border overflow-hidden flex flex-col max-h-[85vh]">
             <div class="px-6 py-4 bg-dark-900 border-b border-dark-600 flex items-center justify-between">
                 <h3 class="font-serif font-bold text-base text-gold-400"><i class="fa-solid fa-user-shield mr-2"></i>Admin Panel</h3>
                 <button onclick="closeAdminPanel()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div class="p-6 overflow-y-auto space-y-6 flex-1">
-                <div>
-                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide mb-2">Pending Sign-Up Requests</h4>
-                    <div id="adminPendingList" class="space-y-2"></div>
+
+            <div class="px-6 pt-4">
+                <div class="flex bg-dark-900 rounded-lg p-1 border border-dark-600 overflow-x-auto">
+                    <button id="adminTabPending" type="button" onclick="switchAdminTab('pending')" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition whitespace-nowrap">Pending<span id="adminTabPendingCount"></span></button>
+                    <button id="adminTabStaff" type="button" onclick="switchAdminTab('staff')" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition whitespace-nowrap">Staff</button>
+                    <button id="adminTabInvite" type="button" onclick="switchAdminTab('invite')" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition whitespace-nowrap">Invite</button>
+                    <button id="adminTabDeletions" type="button" onclick="switchAdminTab('deletions')" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition whitespace-nowrap">Deletions</button>
                 </div>
-                <div>
-                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide mb-2">Recent Deletions</h4>
-                    <div id="adminDeletionsList" class="space-y-2"></div>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1">
+                <div id="adminPanePending" class="space-y-2"></div>
+
+                <div id="adminPaneStaff" class="space-y-2 hidden"></div>
+
+                <div id="adminPaneInvite" class="space-y-3 hidden">
+                    <p class="text-xs text-slate-400">Pre-approve someone's email so they get access immediately when they sign up — no invite email is sent (this static site has no backend to send one); just tell them to use "Sign Up" with this exact email.</p>
+                    <div id="inviteError" class="hidden px-3 py-2 bg-rose-950 border border-rose-800 text-rose-400 text-xs rounded-lg"></div>
+                    <div class="flex gap-2">
+                        <input id="inviteEmailInput" type="email" placeholder="staffmember@email.com" class="flex-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                        <button type="button" onclick="sendStaffInvite()" class="px-4 py-2 gold-gradient-bg text-black font-bold text-xs rounded-lg transition whitespace-nowrap">Invite</button>
+                    </div>
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide pt-2">Outstanding Invites</h4>
+                    <div id="adminInvitesList" class="space-y-2"></div>
                 </div>
+
+                <div id="adminPaneDeletions" class="space-y-2 hidden"></div>
             </div>
             <div class="px-6 py-4 bg-dark-900 border-t border-dark-600 flex justify-end">
                 <button onclick="closeAdminPanel()" class="px-5 py-2 bg-dark-700 hover:bg-dark-600 text-slate-200 font-semibold text-xs rounded-xl transition border border-dark-600">Close</button>
@@ -360,7 +396,7 @@
         // Firebase is loaded dynamically (not as a static top-level import) so that a
         // blocked/flaky CDN only disables cloud sync instead of crashing the whole page —
         // a static import that fails to resolve aborts the entire module.
-        let initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc,
+        let initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc, getDoc,
             onSnapshot, query, where, orderBy, limit, serverTimestamp;
         let getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
             signOut, sendPasswordResetEmail;
@@ -381,6 +417,7 @@
 
         // APP STATE
         let bookings = [];
+        let bookingsUnsub = null;
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
         let db = null;
@@ -389,16 +426,22 @@
         // AUTH / STAFF ACCESS STATE
         let auth = null;
         let currentUser = null;       // Firebase Auth user, or null when signed out
-        let myStaffStatus = null;     // { email, status: 'pending'|'approved'|'denied', role } or null
+        let myStaffStatus = null;     // { email, displayName, status: 'pending'|'approved'|'denied'|'revoked', role } or null
+        let myStaffDocLoaded = false; // distinguishes "still loading" from "confirmed: no staff record"
         let myStaffUnsub = null;
         let pendingStaffUnsub = null;
         let pendingStaffList = [];
+        let allStaffUnsub = null;
+        let allStaffList = [];
+        let invitesUnsub = null;
+        let outstandingInvitesList = [];
         let recentDeletionsUnsub = null;
         let recentDeletionsList = [];
         let authModalMode = 'signin';
+        let currentAdminTab = 'pending';
 
-        const TAB_ACTIVE_CLASS = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition bg-dark-700 text-gold-400';
-        const TAB_INACTIVE_CLASS = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition text-slate-400 hover:text-slate-200';
+        const TAB_ACTIVE_CLASS = 'flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition bg-dark-700 text-gold-400 whitespace-nowrap';
+        const TAB_INACTIVE_CLASS = 'flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition text-slate-400 hover:text-slate-200 whitespace-nowrap';
 
         function isApproved() {
             return !!(myStaffStatus && myStaffStatus.status === 'approved');
@@ -406,15 +449,21 @@
         function isAdmin() {
             return isApproved() && myStaffStatus.role === 'admin';
         }
+        function staffDisplayLabel(entry) {
+            if (!entry) return 'Unknown';
+            return entry.displayName || entry.email || 'Unknown';
+        }
         function canWrite() {
             return !!db && isApproved();
         }
         function writeGateMessage() {
             if (!db) return 'Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.';
             if (!currentUser) return 'Please sign in to add, edit, or delete bookings.';
-            if (!myStaffStatus) return 'Loading your account — try again in a moment.';
+            if (!myStaffDocLoaded) return 'Loading your account — try again in a moment.';
+            if (!myStaffStatus) return 'No access record found for your account — ask an admin to invite you.';
             if (myStaffStatus.status === 'pending') return 'Your account is still waiting on admin approval.';
             if (myStaffStatus.status === 'denied') return 'Your account was denied access by an admin.';
+            if (myStaffStatus.status === 'revoked') return 'Your access was revoked by an admin.';
             return 'You do not have permission to do that.';
         }
 
@@ -451,6 +500,7 @@
         window.onload = function() {
             syncThemeToggleIcon();
             updateAuthUI();
+            updateAppGate();
             initCloudSync();
             renderCalendar();
         };
@@ -504,26 +554,16 @@
                 const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
                 const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
                 ({ initializeApp } = appMod);
-                ({ getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp } = fsMod);
+                ({ getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc, getDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp } = fsMod);
                 ({ getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } = authMod);
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                const bookingsQuery = query(collection(db, 'bookings'), orderBy('startDate'));
-                onSnapshot(bookingsQuery, (snapshot) => {
-                    bookings = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-                    setSyncStatus('live');
-                    renderCalendar();
-                    if (!document.getElementById('dayModal').classList.contains('hidden')) renderDayModalList();
-                    renderSearchResults();
-                }, (err) => {
-                    console.error('Firestore sync error:', err);
-                    setSyncStatus('error');
-                    showToast('Cloud sync lost connection: ' + err.message, true);
-                });
-
+                // The bookings listener only starts once the visitor is signed in AND
+                // approved (see startBookingsListener) — reading is gated the same as
+                // writing now, so there is nothing to subscribe to before that.
                 onAuthStateChanged(auth, handleAuthStateChanged);
             } catch (err) {
                 console.error('Firebase init/load error:', err);
@@ -533,15 +573,39 @@
             }
         }
 
+        function startBookingsListener() {
+            if (bookingsUnsub) return;
+            const bookingsQuery = query(collection(db, 'bookings'), orderBy('startDate'));
+            bookingsUnsub = onSnapshot(bookingsQuery, (snapshot) => {
+                bookings = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+                setSyncStatus('live');
+                renderCalendar();
+                if (!document.getElementById('dayModal').classList.contains('hidden')) renderDayModalList();
+                renderSearchResults();
+            }, (err) => {
+                console.error('Firestore sync error:', err);
+                setSyncStatus('error');
+                showToast('Cloud sync lost connection: ' + err.message, true);
+            });
+        }
+
+        function stopBookingsListener() {
+            if (bookingsUnsub) { bookingsUnsub(); bookingsUnsub = null; }
+            bookings = [];
+        }
+
         // AUTH STATE + STAFF APPROVAL
         function handleAuthStateChanged(user) {
             currentUser = user;
             if (myStaffUnsub) { myStaffUnsub(); myStaffUnsub = null; }
             stopAdminListeners();
+            stopBookingsListener();
             myStaffStatus = null;
+            myStaffDocLoaded = false;
 
             if (!user) {
                 updateAuthUI();
+                updateAppGate();
                 renderCalendar();
                 if (!document.getElementById('dayModal').classList.contains('hidden')) renderDayModalList();
                 return;
@@ -549,7 +613,14 @@
 
             myStaffUnsub = onSnapshot(doc(db, 'staff', user.uid), (snap) => {
                 myStaffStatus = snap.exists() ? snap.data() : null;
+                myStaffDocLoaded = true;
                 updateAuthUI();
+                updateAppGate();
+                if (isApproved()) {
+                    startBookingsListener();
+                } else {
+                    stopBookingsListener();
+                }
                 renderCalendar();
                 if (!document.getElementById('dayModal').classList.contains('hidden')) renderDayModalList();
                 if (isAdmin()) {
@@ -559,6 +630,9 @@
                 }
             }, (err) => {
                 console.error('Staff status sync error:', err);
+                myStaffDocLoaded = true;
+                updateAuthUI();
+                updateAppGate();
             });
         }
 
@@ -571,6 +645,18 @@
                     renderAdminPanel();
                 }, (err) => console.error('Pending staff sync error:', err));
             }
+            if (!allStaffUnsub) {
+                allStaffUnsub = onSnapshot(collection(db, 'staff'), (snapshot) => {
+                    allStaffList = snapshot.docs.map(d => ({ uid: d.id, ...d.data() }));
+                    renderAdminPanel();
+                }, (err) => console.error('Staff directory sync error:', err));
+            }
+            if (!invitesUnsub) {
+                invitesUnsub = onSnapshot(collection(db, 'invites'), (snapshot) => {
+                    outstandingInvitesList = snapshot.docs.map(d => ({ email: d.id, ...d.data() }));
+                    renderAdminPanel();
+                }, (err) => console.error('Invites sync error:', err));
+            }
             if (!recentDeletionsUnsub) {
                 const deletionsQuery = query(collection(db, 'deletionLog'), orderBy('deletedAt', 'desc'), limit(20));
                 recentDeletionsUnsub = onSnapshot(deletionsQuery, (snapshot) => {
@@ -582,47 +668,72 @@
 
         function stopAdminListeners() {
             if (pendingStaffUnsub) { pendingStaffUnsub(); pendingStaffUnsub = null; }
+            if (allStaffUnsub) { allStaffUnsub(); allStaffUnsub = null; }
+            if (invitesUnsub) { invitesUnsub(); invitesUnsub = null; }
             if (recentDeletionsUnsub) { recentDeletionsUnsub(); recentDeletionsUnsub = null; }
             pendingStaffList = [];
+            allStaffList = [];
+            outstandingInvitesList = [];
             recentDeletionsList = [];
+        }
+
+        // Full-page gate shown instead of the calendar until signed in AND approved.
+        function updateAppGate() {
+            const gate = document.getElementById('appGate');
+            const content = document.getElementById('appContent');
+            const syncBadge = document.getElementById('syncStatus');
+            if (!gate || !content) return;
+
+            const approved = isApproved();
+            gate.classList.toggle('hidden', approved);
+            content.classList.toggle('hidden', !approved);
+            if (syncBadge) syncBadge.classList.toggle('hidden', !approved);
+
+            if (approved) return;
+
+            const title = document.getElementById('gateTitle');
+            const message = document.getElementById('gateMessage');
+            const actions = document.getElementById('gateActions');
+            const signOutBtn = `<button onclick="signOutUser()" class="px-5 py-2.5 bg-dark-700 hover:bg-dark-600 text-slate-300 text-xs font-semibold rounded-xl transition border border-dark-600">Sign Out</button>`;
+
+            if (!currentUser) {
+                title.textContent = 'Staff Sign-In Required';
+                message.textContent = 'This calendar is for Casanova Resort staff only. Sign in or create an account to view and manage bookings.';
+                actions.innerHTML = `
+                    <button onclick="openAuthModal('signin')" class="px-5 py-2.5 gold-gradient-bg text-black font-bold text-xs rounded-xl transition shadow-lg">Sign In</button>
+                    <button onclick="openAuthModal('signup')" class="px-5 py-2.5 bg-dark-700 hover:bg-dark-600 text-gold-400 text-xs font-semibold rounded-xl transition border gold-border">Sign Up</button>
+                `;
+            } else if (!myStaffDocLoaded) {
+                title.textContent = 'Loading...';
+                message.textContent = 'Checking your account status.';
+                actions.innerHTML = '';
+            } else if (!myStaffStatus) {
+                title.textContent = 'No Access Record';
+                message.textContent = "We couldn't find an access record for your account. Ask an admin to invite you, or sign out and use a different account.";
+                actions.innerHTML = signOutBtn;
+            } else if (myStaffStatus.status === 'pending') {
+                title.textContent = 'Waiting on Approval';
+                message.textContent = "Your account was created and is waiting for an admin to approve it. You'll get access automatically as soon as that happens — no need to sign up again.";
+                actions.innerHTML = signOutBtn;
+            } else if (myStaffStatus.status === 'denied') {
+                title.textContent = 'Access Denied';
+                message.textContent = 'An admin denied this account access to the calendar.';
+                actions.innerHTML = signOutBtn;
+            } else if (myStaffStatus.status === 'revoked') {
+                title.textContent = 'Access Revoked';
+                message.textContent = "An admin revoked this account's access to the calendar.";
+                actions.innerHTML = signOutBtn;
+            }
         }
 
         function updateAuthUI() {
             const container = document.getElementById('authControls');
             if (!container) return;
 
-            if (!currentUser) {
-                container.innerHTML = `
-                    <button onclick="openAuthModal('signin')" class="px-3.5 py-2 bg-dark-700 hover:bg-dark-600 text-gold-400 hover:text-gold-300 text-xs font-semibold rounded-xl transition border gold-border flex items-center space-x-2">
-                        <i class="fa-solid fa-user"></i>
-                        <span class="hidden sm:inline">Staff Sign In</span>
-                    </button>
-                `;
-                return;
-            }
-
-            if (!myStaffStatus) {
-                container.innerHTML = `<span class="text-xs text-slate-400">Loading account...</span>`;
-                return;
-            }
-
-            if (myStaffStatus.status === 'pending') {
-                container.innerHTML = `
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-950 text-amber-400 border border-amber-800">
-                        <i class="fa-solid fa-hourglass-half mr-1.5"></i> Pending Approval
-                    </span>
-                    <button onclick="signOutUser()" title="Sign out" class="p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-slate-400 hover:text-slate-200 transition"><i class="fa-solid fa-right-from-bracket"></i></button>
-                `;
-                return;
-            }
-
-            if (myStaffStatus.status === 'denied') {
-                container.innerHTML = `
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-950 text-rose-400 border border-rose-800">
-                        <i class="fa-solid fa-ban mr-1.5"></i> Access Denied
-                    </span>
-                    <button onclick="signOutUser()" title="Sign out" class="p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-slate-400 hover:text-slate-200 transition"><i class="fa-solid fa-right-from-bracket"></i></button>
-                `;
+            // All pre-approval messaging now lives on the full-page gate (updateAppGate);
+            // the header only ever shows the signed-in state once actually approved.
+            if (!isApproved()) {
+                container.innerHTML = '';
                 return;
             }
 
@@ -633,8 +744,9 @@
                 </button>
             ` : '';
 
+            const label = staffDisplayLabel(myStaffStatus);
             container.innerHTML = `
-                <span class="hidden sm:inline text-xs text-slate-400 max-w-[160px] truncate" title="${escapeHtml(currentUser.email)}">${escapeHtml(currentUser.email)}</span>
+                <span class="hidden sm:inline text-xs text-slate-400 max-w-[160px] truncate" title="${escapeHtml(currentUser.email)}">${escapeHtml(label)}</span>
                 ${adminBtn}
                 <button onclick="signOutUser()" title="Sign out" class="p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-slate-400 hover:text-slate-200 transition"><i class="fa-solid fa-right-from-bracket"></i></button>
             `;
@@ -644,6 +756,7 @@
         function openAuthModal(mode) {
             authModalMode = mode || 'signin';
             document.getElementById('authError').classList.add('hidden');
+            document.getElementById('authName').value = '';
             document.getElementById('authEmail').value = '';
             document.getElementById('authPassword').value = '';
             syncAuthModalTabs();
@@ -666,6 +779,7 @@
             document.getElementById('authTabSignUp').className = isSignUp ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS;
             document.getElementById('authSubmitBtn').textContent = isSignUp ? 'Create Account' : 'Sign In';
             document.getElementById('authForgotLink').classList.toggle('hidden', isSignUp);
+            document.getElementById('authNameField').classList.toggle('hidden', !isSignUp);
         }
 
         function authErrorMessage(err) {
@@ -682,7 +796,8 @@
         }
 
         async function handleAuthSubmit() {
-            const email = document.getElementById('authEmail').value.trim();
+            const name = document.getElementById('authName').value.trim();
+            const email = document.getElementById('authEmail').value.trim().toLowerCase();
             const password = document.getElementById('authPassword').value;
             const errorEl = document.getElementById('authError');
             errorEl.classList.add('hidden');
@@ -696,18 +811,42 @@
                 errorEl.classList.remove('hidden');
                 return;
             }
+            if (authModalMode === 'signup' && !name) {
+                errorEl.textContent = 'Please enter your name.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
 
             try {
                 if (authModalMode === 'signup') {
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+                    // Admin pre-approved this email via the Invite tab? Skip the pending wait.
+                    let preApproved = false;
+                    try {
+                        const inviteSnap = await getDoc(doc(db, 'invites', email));
+                        preApproved = inviteSnap.exists();
+                    } catch (lookupErr) {
+                        console.error('Invite lookup failed:', lookupErr);
+                    }
+
                     await setDoc(doc(db, 'staff', cred.user.uid), {
-                        email: cred.user.email,
-                        status: 'pending',
+                        email,
+                        displayName: name,
+                        status: preApproved ? 'approved' : 'pending',
                         role: 'staff',
-                        requestedAt: serverTimestamp()
+                        requestedAt: serverTimestamp(),
+                        ...(preApproved ? { reviewedAt: serverTimestamp(), reviewedBy: 'invite' } : {})
                     });
+
+                    if (preApproved) {
+                        deleteDoc(doc(db, 'invites', email)).catch(e => console.error('Could not consume invite:', e));
+                    }
+
                     closeAuthModal();
-                    showToast('Account created! An admin needs to approve it before you can add, edit, or delete bookings.');
+                    showToast(preApproved
+                        ? "Account created — you were already invited, so you're in!"
+                        : 'Account created! An admin needs to approve it before you can view or manage bookings.');
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
                     closeAuthModal();
@@ -748,8 +887,9 @@
             }
         }
 
-        // ADMIN PANEL (pending sign-ups + recent deletions)
+        // ADMIN PANEL (pending sign-ups, staff directory, invites, deletion log)
         function openAdminPanel() {
+            switchAdminTab('pending');
             renderAdminPanel();
             document.getElementById('adminPanelModal').classList.remove('hidden');
         }
@@ -758,29 +898,120 @@
             document.getElementById('adminPanelModal').classList.add('hidden');
         }
 
-        function renderAdminPanel() {
-            const pendingList = document.getElementById('adminPendingList');
-            const deletionsList = document.getElementById('adminDeletionsList');
-            if (!pendingList || !deletionsList) return;
+        function switchAdminTab(tab) {
+            currentAdminTab = tab;
+            const tabs = { pending: 'adminTabPending', staff: 'adminTabStaff', invite: 'adminTabInvite', deletions: 'adminTabDeletions' };
+            const panes = { pending: 'adminPanePending', staff: 'adminPaneStaff', invite: 'adminPaneInvite', deletions: 'adminPaneDeletions' };
+            Object.entries(tabs).forEach(([key, id]) => {
+                document.getElementById(id).className = key === tab ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS;
+            });
+            Object.entries(panes).forEach(([key, id]) => {
+                document.getElementById(id).classList.toggle('hidden', key !== tab);
+            });
+        }
 
-            pendingList.innerHTML = pendingStaffList.length === 0
+        function renderAdminPanel() {
+            const pendingCountEl = document.getElementById('adminTabPendingCount');
+            if (pendingCountEl) pendingCountEl.textContent = pendingStaffList.length > 0 ? ` (${pendingStaffList.length})` : '';
+
+            renderPendingList();
+            renderStaffDirectory();
+            renderInvitesList();
+            renderDeletionsList();
+        }
+
+        function renderPendingList() {
+            const container = document.getElementById('adminPanePending');
+            if (!container) return;
+            container.innerHTML = pendingStaffList.length === 0
                 ? `<p class="text-xs text-slate-500 text-center py-6">No pending sign-up requests.</p>`
                 : pendingStaffList.map(s => `
                     <div class="flex items-center justify-between gap-3 p-3 bg-dark-900 border border-dark-600 rounded-xl">
-                        <p class="text-xs font-semibold text-slate-100 truncate min-w-0">${escapeHtml(s.email)}</p>
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-slate-100 truncate">${escapeHtml(staffDisplayLabel(s))}</p>
+                            <p class="text-[10px] text-slate-500 truncate">${escapeHtml(s.email || '')}</p>
+                        </div>
                         <div class="flex items-center space-x-2 shrink-0">
                             <button onclick="denyStaff('${s.uid}')" class="px-2.5 py-1.5 bg-dark-700 hover:bg-rose-950 text-rose-400 text-xs font-semibold rounded-lg transition border border-dark-600">Deny</button>
                             <button onclick="approveStaff('${s.uid}')" class="px-2.5 py-1.5 gold-gradient-bg text-black text-xs font-bold rounded-lg transition">Approve</button>
                         </div>
                     </div>
                 `).join('');
+        }
 
-            deletionsList.innerHTML = recentDeletionsList.length === 0
+        function renderStaffDirectory() {
+            const container = document.getElementById('adminPaneStaff');
+            if (!container) return;
+            if (allStaffList.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">No staff records yet.</p>`;
+                return;
+            }
+
+            const statusBadgeClass = {
+                approved: 'bg-emerald-950 text-emerald-400 border-emerald-800',
+                pending: 'bg-amber-950 text-amber-400 border-amber-800',
+                denied: 'bg-rose-950 text-rose-400 border-rose-800',
+                revoked: 'bg-rose-950 text-rose-400 border-rose-800'
+            };
+
+            const sorted = [...allStaffList].sort((a, b) => staffDisplayLabel(a).localeCompare(staffDisplayLabel(b)));
+            container.innerHTML = sorted.map(s => {
+                const isSelf = currentUser && s.uid === currentUser.uid;
+                const badgeClass = statusBadgeClass[s.status] || 'bg-dark-700 text-slate-400 border-dark-600';
+
+                let actions = `<button onclick="renameStaff('${s.uid}')" title="Rename" class="px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 text-slate-300 text-xs font-semibold rounded-lg transition border border-dark-600"><i class="fa-solid fa-pen"></i></button>`;
+                if (s.status === 'approved') {
+                    actions += `<button onclick="revokeStaff('${s.uid}')" class="px-2.5 py-1.5 bg-dark-700 hover:bg-rose-950 text-rose-400 text-xs font-semibold rounded-lg transition border border-dark-600">Revoke</button>`;
+                    if (!isSelf) {
+                        actions += s.role === 'admin'
+                            ? `<button onclick="setStaffRole('${s.uid}','staff')" class="px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 text-slate-300 text-xs font-semibold rounded-lg transition border border-dark-600">Remove Admin</button>`
+                            : `<button onclick="setStaffRole('${s.uid}','admin')" class="px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 text-gold-400 text-xs font-semibold rounded-lg transition border border-dark-600">Make Admin</button>`;
+                    }
+                } else if (s.status === 'denied' || s.status === 'revoked') {
+                    actions += `<button onclick="approveStaff('${s.uid}')" class="px-2.5 py-1.5 gold-gradient-bg text-black text-xs font-bold rounded-lg transition">Re-approve</button>`;
+                }
+                if (!isSelf) {
+                    actions += `<button onclick="deleteStaffRecord('${s.uid}')" title="Permanently remove this staff record" class="px-2.5 py-1.5 bg-dark-700 hover:bg-rose-950 text-rose-400 text-xs font-semibold rounded-lg transition border border-dark-600"><i class="fa-solid fa-trash-can"></i></button>`;
+                }
+
+                return `
+                    <div class="flex items-center justify-between gap-3 p-3 bg-dark-900 border border-dark-600 rounded-xl">
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-slate-100 truncate">${escapeHtml(staffDisplayLabel(s))}${isSelf ? ' <span class="text-slate-500">(you)</span>' : ''}</p>
+                            <p class="text-[10px] text-slate-500 truncate">${escapeHtml(s.email || '')}</p>
+                            <div class="flex items-center gap-1.5 mt-1">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${badgeClass}">${escapeHtml(s.status || 'unknown')}</span>
+                                ${s.role === 'admin' ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-gold-500/15 text-gold-400 border-gold-500/40">admin</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 shrink-0 flex-wrap justify-end">${actions}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderInvitesList() {
+            const container = document.getElementById('adminInvitesList');
+            if (!container) return;
+            container.innerHTML = outstandingInvitesList.length === 0
+                ? `<p class="text-xs text-slate-500 text-center py-4">No outstanding invites.</p>`
+                : outstandingInvitesList.map(inv => `
+                    <div class="flex items-center justify-between gap-3 p-2.5 bg-dark-900 border border-dark-600 rounded-lg">
+                        <p class="text-xs text-slate-200 truncate">${escapeHtml(inv.email)}</p>
+                        <button onclick="cancelInvite('${inv.email}')" class="text-rose-400 hover:text-rose-300 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-500/10 transition">Cancel</button>
+                    </div>
+                `).join('');
+        }
+
+        function renderDeletionsList() {
+            const container = document.getElementById('adminPaneDeletions');
+            if (!container) return;
+            container.innerHTML = recentDeletionsList.length === 0
                 ? `<p class="text-xs text-slate-500 text-center py-6">No deletions recorded yet.</p>`
                 : recentDeletionsList.map(entry => `
                     <div class="p-3 bg-dark-900 border border-dark-600 rounded-xl">
                         <p class="text-xs text-slate-200 truncate">${escapeHtml(entry.bookingSummary || '(no summary)')}</p>
-                        <p class="text-[10px] text-slate-500">Deleted by ${escapeHtml(entry.deletedByEmail || 'unknown')}</p>
+                        <p class="text-[10px] text-slate-500">Deleted by ${escapeHtml(entry.deletedByName || entry.deletedByEmail || 'unknown')}</p>
                     </div>
                 `).join('');
         }
@@ -813,6 +1044,103 @@
             } catch (err) {
                 console.error('Deny failed:', err);
                 showToast('Could not deny: ' + err.message, true);
+            }
+        }
+
+        async function revokeStaff(uid) {
+            if (!isAdmin()) return;
+            if (!confirm("Revoke this person's access? They will no longer be able to view or manage bookings.")) return;
+            try {
+                await updateDoc(doc(db, 'staff', uid), {
+                    status: 'revoked',
+                    reviewedAt: serverTimestamp(),
+                    reviewedBy: currentUser.email
+                });
+                showToast('Access revoked.');
+            } catch (err) {
+                console.error('Revoke failed:', err);
+                showToast('Could not revoke access: ' + err.message, true);
+            }
+        }
+
+        async function setStaffRole(uid, role) {
+            if (!isAdmin()) return;
+            try {
+                await updateDoc(doc(db, 'staff', uid), { role });
+                showToast(role === 'admin' ? 'Granted admin access.' : 'Removed admin access.');
+            } catch (err) {
+                console.error('Role change failed:', err);
+                showToast('Could not change role: ' + err.message, true);
+            }
+        }
+
+        async function renameStaff(uid) {
+            if (!isAdmin()) return;
+            const person = allStaffList.find(s => s.uid === uid);
+            const next = prompt('Enter the display name for this staff member:', (person && person.displayName) || '');
+            if (next === null) return;
+            const trimmed = next.trim();
+            if (!trimmed) {
+                showToast('Name cannot be empty.', true);
+                return;
+            }
+            try {
+                await updateDoc(doc(db, 'staff', uid), { displayName: trimmed });
+                showToast('Name updated.');
+            } catch (err) {
+                console.error('Rename failed:', err);
+                showToast('Could not update name: ' + err.message, true);
+            }
+        }
+
+        async function deleteStaffRecord(uid) {
+            if (!isAdmin()) return;
+            const person = allStaffList.find(s => s.uid === uid);
+            const label = person ? staffDisplayLabel(person) : 'this person';
+            if (!confirm(`Permanently remove the staff record for ${label}? They would need a new invite or sign-up to regain access. This does not delete their underlying login, only their access record here.`)) return;
+            try {
+                await deleteDoc(doc(db, 'staff', uid));
+                showToast('Staff record removed.');
+            } catch (err) {
+                console.error('Delete staff record failed:', err);
+                showToast('Could not remove record: ' + err.message, true);
+            }
+        }
+
+        async function sendStaffInvite() {
+            if (!isAdmin()) return;
+            const input = document.getElementById('inviteEmailInput');
+            const errorEl = document.getElementById('inviteError');
+            errorEl.classList.add('hidden');
+            const email = input.value.trim().toLowerCase();
+            if (!email || !email.includes('@')) {
+                errorEl.textContent = 'Enter a valid email address.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            try {
+                await setDoc(doc(db, 'invites', email), {
+                    email,
+                    invitedBy: currentUser.email,
+                    invitedAt: serverTimestamp()
+                });
+                input.value = '';
+                showToast(`Invited ${email} — they'll have access right away once they sign up with that email.`);
+            } catch (err) {
+                console.error('Invite failed:', err);
+                errorEl.textContent = err.message || 'Could not send invite.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function cancelInvite(email) {
+            if (!isAdmin()) return;
+            try {
+                await deleteDoc(doc(db, 'invites', email));
+                showToast('Invite cancelled.');
+            } catch (err) {
+                console.error('Cancel invite failed:', err);
+                showToast('Could not cancel invite: ' + err.message, true);
             }
         }
 
@@ -963,7 +1291,8 @@
                     endDate: parsed.endDate,
                     rawText: rawText,
                     createdAt: serverTimestamp(),
-                    createdByEmail: currentUser.email
+                    createdByEmail: currentUser.email,
+                    createdByName: staffDisplayLabel(myStaffStatus)
                 });
 
                 textInput.value = '';
@@ -1103,8 +1432,8 @@
                         </div>
                     ` : '';
                     const attribution = b.updatedByEmail
-                        ? `Last edited by ${escapeHtml(b.updatedByEmail)}`
-                        : (b.createdByEmail ? `Added by ${escapeHtml(b.createdByEmail)}` : '');
+                        ? `Last edited by ${escapeHtml(b.updatedByName || b.updatedByEmail)}`
+                        : ((b.createdByEmail || b.createdByName) ? `Added by ${escapeHtml(b.createdByName || b.createdByEmail)}` : '');
                     card.innerHTML = `
                         <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-dark-600 pb-2">
                             <span class="text-gold-400"><i class="fa-solid fa-calendar-day mr-1.5"></i>${dateBadge}</span>
@@ -1162,7 +1491,8 @@
                     endDate: parsed.endDate,
                     rawText: rawText,
                     updatedAt: serverTimestamp(),
-                    updatedByEmail: currentUser.email
+                    updatedByEmail: currentUser.email,
+                    updatedByName: staffDisplayLabel(myStaffStatus)
                 });
                 editingBookingId = null;
                 showToast('Booking updated for everyone.');
@@ -1193,6 +1523,7 @@
                     addDoc(collection(db, 'deletionLog'), {
                         bookingSummary: `${target.rawText.split('\n')[0]} (${range})`,
                         deletedByEmail: currentUser.email,
+                        deletedByName: staffDisplayLabel(myStaffStatus),
                         deletedAt: serverTimestamp()
                     }).catch(err => console.error('Could not write deletion log:', err));
                 }
@@ -1330,8 +1661,15 @@
         window.signOutUser = signOutUser;
         window.openAdminPanel = openAdminPanel;
         window.closeAdminPanel = closeAdminPanel;
+        window.switchAdminTab = switchAdminTab;
         window.approveStaff = approveStaff;
         window.denyStaff = denyStaff;
+        window.revokeStaff = revokeStaff;
+        window.setStaffRole = setStaffRole;
+        window.renameStaff = renameStaff;
+        window.deleteStaffRecord = deleteStaffRecord;
+        window.sendStaffInvite = sendStaffInvite;
+        window.cancelInvite = cancelInvite;
     </script>
 </body>
 </html>
