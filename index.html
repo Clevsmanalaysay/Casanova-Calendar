@@ -171,11 +171,12 @@
             </div>
 
             <!-- ACTIONS -->
-            <div class="flex items-center space-x-3">
-                <span id="syncStatus" class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-dark-700 text-slate-400 border border-dark-600">
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <span id="syncStatus" class="hidden md:inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-dark-700 text-slate-400 border border-dark-600">
                     <span id="syncStatusDot" class="w-2 h-2 mr-1.5 rounded-full bg-slate-500"></span>
                     <span id="syncStatusText">Connecting...</span>
                 </span>
+                <div id="authControls" class="flex items-center space-x-2"></div>
                 <button id="themeToggleBtn" onclick="toggleTheme()" title="Switch theme" class="p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-gold-400 hover:text-gold-300 transition flex items-center justify-center w-10 h-10">
                     <i id="themeToggleIcon" class="fa-solid fa-moon"></i>
                 </button>
@@ -237,9 +238,13 @@
                 </button>
             </div>
 
-            <div class="text-xs text-slate-400 font-medium flex items-center space-x-2">
-                <i class="fa-solid fa-circle-info text-gold-500"></i>
-                <span>Click any day to inspect full raw booking details</span>
+            <div class="relative w-full sm:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs pointer-events-none"></i>
+                <input id="searchInput" type="text" placeholder="Search bookings by name..." oninput="handleSearchInput()" class="w-full pl-8 pr-8 py-2 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 placeholder-slate-500 outline-none transition">
+                <button id="searchClearBtn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+                <div id="searchResults" class="hidden absolute right-0 z-30 mt-1.5 w-full sm:w-80 max-h-72 overflow-y-auto bg-dark-800 border gold-border rounded-xl shadow-2xl divide-y divide-dark-600/60"></div>
             </div>
         </div>
 
@@ -287,6 +292,63 @@
         </div>
     </div>
 
+    <!-- STAFF SIGN IN / SIGN UP MODAL -->
+    <div id="authModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-dark-800 rounded-2xl max-w-sm w-full shadow-2xl border gold-border overflow-hidden">
+            <div class="px-6 py-4 bg-dark-900 border-b border-dark-600 flex items-center justify-between">
+                <h3 class="font-serif font-bold text-base text-gold-400">Staff Access</h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="px-6 pt-4">
+                <div class="flex bg-dark-900 rounded-lg p-1 border border-dark-600">
+                    <button id="authTabSignIn" type="button" onclick="switchAuthTab('signin')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">Sign In</button>
+                    <button id="authTabSignUp" type="button" onclick="switchAuthTab('signup')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">Sign Up</button>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-3">
+                <div id="authError" class="hidden px-3 py-2 bg-rose-950 border border-rose-800 text-rose-400 text-xs rounded-lg"></div>
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Email</label>
+                    <input id="authEmail" type="email" autocomplete="username" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                </div>
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Password</label>
+                    <input id="authPassword" type="password" autocomplete="current-password" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                </div>
+                <button id="authForgotLink" type="button" onclick="handlePasswordReset()" class="text-[11px] text-gold-400 hover:text-gold-300 hover:underline">Forgot password?</button>
+
+                <button id="authSubmitBtn" type="button" onclick="handleAuthSubmit()" class="w-full py-2.5 gold-gradient-bg text-black font-bold text-xs rounded-xl transition shadow-lg mt-2">Sign In</button>
+
+                <p class="text-[10px] text-slate-500 text-center pt-1">New accounts need admin approval before they can add, edit, or delete bookings.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL MODAL -->
+    <div id="adminPanelModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-dark-800 rounded-2xl max-w-lg w-full shadow-2xl border gold-border overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="px-6 py-4 bg-dark-900 border-b border-dark-600 flex items-center justify-between">
+                <h3 class="font-serif font-bold text-base text-gold-400"><i class="fa-solid fa-user-shield mr-2"></i>Admin Panel</h3>
+                <button onclick="closeAdminPanel()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-6 flex-1">
+                <div>
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide mb-2">Pending Sign-Up Requests</h4>
+                    <div id="adminPendingList" class="space-y-2"></div>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide mb-2">Recent Deletions</h4>
+                    <div id="adminDeletionsList" class="space-y-2"></div>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-dark-900 border-t border-dark-600 flex justify-end">
+                <button onclick="closeAdminPanel()" class="px-5 py-2 bg-dark-700 hover:bg-dark-600 text-slate-200 font-semibold text-xs rounded-xl transition border border-dark-600">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 bg-dark-800 text-slate-100 text-xs font-semibold rounded-xl shadow-2xl border gold-border flex items-center space-x-2">
         <i id="toastIcon" class="fa-solid fa-circle-check text-gold-400 text-sm"></i>
@@ -298,8 +360,10 @@
         // Firebase is loaded dynamically (not as a static top-level import) so that a
         // blocked/flaky CDN only disables cloud sync instead of crashing the whole page —
         // a static import that fails to resolve aborts the entire module.
-        let initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc,
-            onSnapshot, query, orderBy, serverTimestamp;
+        let initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc,
+            onSnapshot, query, where, orderBy, limit, serverTimestamp;
+        let getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+            signOut, sendPasswordResetEmail;
 
         // ============================================================
         // ONE-TIME SETUP: paste your Firebase project config below.
@@ -320,6 +384,39 @@
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
         let db = null;
+        let searchQuery = '';
+
+        // AUTH / STAFF ACCESS STATE
+        let auth = null;
+        let currentUser = null;       // Firebase Auth user, or null when signed out
+        let myStaffStatus = null;     // { email, status: 'pending'|'approved'|'denied', role } or null
+        let myStaffUnsub = null;
+        let pendingStaffUnsub = null;
+        let pendingStaffList = [];
+        let recentDeletionsUnsub = null;
+        let recentDeletionsList = [];
+        let authModalMode = 'signin';
+
+        const TAB_ACTIVE_CLASS = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition bg-dark-700 text-gold-400';
+        const TAB_INACTIVE_CLASS = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition text-slate-400 hover:text-slate-200';
+
+        function isApproved() {
+            return !!(myStaffStatus && myStaffStatus.status === 'approved');
+        }
+        function isAdmin() {
+            return isApproved() && myStaffStatus.role === 'admin';
+        }
+        function canWrite() {
+            return !!db && isApproved();
+        }
+        function writeGateMessage() {
+            if (!db) return 'Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.';
+            if (!currentUser) return 'Please sign in to add, edit, or delete bookings.';
+            if (!myStaffStatus) return 'Loading your account — try again in a moment.';
+            if (myStaffStatus.status === 'pending') return 'Your account is still waiting on admin approval.';
+            if (myStaffStatus.status === 'denied') return 'Your account was denied access by an admin.';
+            return 'You do not have permission to do that.';
+        }
 
         const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const MONTH_MAP = {
@@ -353,6 +450,7 @@
 
         window.onload = function() {
             syncThemeToggleIcon();
+            updateAuthUI();
             initCloudSync();
             renderCalendar();
         };
@@ -404,27 +502,317 @@
             try {
                 const appMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
                 const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+                const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
                 ({ initializeApp } = appMod);
-                ({ getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, serverTimestamp } = fsMod);
+                ({ getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp } = fsMod);
+                ({ getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } = authMod);
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                const bookingsQuery = query(collection(db, 'bookings'), orderBy('startDate'));
+                auth = getAuth(app);
 
+                const bookingsQuery = query(collection(db, 'bookings'), orderBy('startDate'));
                 onSnapshot(bookingsQuery, (snapshot) => {
                     bookings = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
                     setSyncStatus('live');
                     renderCalendar();
+                    if (!document.getElementById('dayModal').classList.contains('hidden')) renderDayModalList();
+                    renderSearchResults();
                 }, (err) => {
                     console.error('Firestore sync error:', err);
                     setSyncStatus('error');
                     showToast('Cloud sync lost connection: ' + err.message, true);
                 });
+
+                onAuthStateChanged(auth, handleAuthStateChanged);
             } catch (err) {
                 console.error('Firebase init/load error:', err);
                 db = null;
                 setSyncStatus('error');
                 showToast('Could not load the shared database (check your internet connection or Firebase config).', true);
+            }
+        }
+
+        // AUTH STATE + STAFF APPROVAL
+        function handleAuthStateChanged(user) {
+            currentUser = user;
+            if (myStaffUnsub) { myStaffUnsub(); myStaffUnsub = null; }
+            stopAdminListeners();
+            myStaffStatus = null;
+
+            if (!user) {
+                updateAuthUI();
+                renderCalendar();
+                if (!document.getElementById('dayModal').classList.contains('hidden')) renderDayModalList();
+                return;
+            }
+
+            myStaffUnsub = onSnapshot(doc(db, 'staff', user.uid), (snap) => {
+                myStaffStatus = snap.exists() ? snap.data() : null;
+                updateAuthUI();
+                renderCalendar();
+                if (!document.getElementById('dayModal').classList.contains('hidden')) renderDayModalList();
+                if (isAdmin()) {
+                    startAdminListeners();
+                } else {
+                    stopAdminListeners();
+                }
+            }, (err) => {
+                console.error('Staff status sync error:', err);
+            });
+        }
+
+        function startAdminListeners() {
+            if (!pendingStaffUnsub) {
+                const pendingQuery = query(collection(db, 'staff'), where('status', '==', 'pending'));
+                pendingStaffUnsub = onSnapshot(pendingQuery, (snapshot) => {
+                    pendingStaffList = snapshot.docs.map(d => ({ uid: d.id, ...d.data() }));
+                    updateAuthUI();
+                    renderAdminPanel();
+                }, (err) => console.error('Pending staff sync error:', err));
+            }
+            if (!recentDeletionsUnsub) {
+                const deletionsQuery = query(collection(db, 'deletionLog'), orderBy('deletedAt', 'desc'), limit(20));
+                recentDeletionsUnsub = onSnapshot(deletionsQuery, (snapshot) => {
+                    recentDeletionsList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderAdminPanel();
+                }, (err) => console.error('Deletion log sync error:', err));
+            }
+        }
+
+        function stopAdminListeners() {
+            if (pendingStaffUnsub) { pendingStaffUnsub(); pendingStaffUnsub = null; }
+            if (recentDeletionsUnsub) { recentDeletionsUnsub(); recentDeletionsUnsub = null; }
+            pendingStaffList = [];
+            recentDeletionsList = [];
+        }
+
+        function updateAuthUI() {
+            const container = document.getElementById('authControls');
+            if (!container) return;
+
+            if (!currentUser) {
+                container.innerHTML = `
+                    <button onclick="openAuthModal('signin')" class="px-3.5 py-2 bg-dark-700 hover:bg-dark-600 text-gold-400 hover:text-gold-300 text-xs font-semibold rounded-xl transition border gold-border flex items-center space-x-2">
+                        <i class="fa-solid fa-user"></i>
+                        <span class="hidden sm:inline">Staff Sign In</span>
+                    </button>
+                `;
+                return;
+            }
+
+            if (!myStaffStatus) {
+                container.innerHTML = `<span class="text-xs text-slate-400">Loading account...</span>`;
+                return;
+            }
+
+            if (myStaffStatus.status === 'pending') {
+                container.innerHTML = `
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-950 text-amber-400 border border-amber-800">
+                        <i class="fa-solid fa-hourglass-half mr-1.5"></i> Pending Approval
+                    </span>
+                    <button onclick="signOutUser()" title="Sign out" class="p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-slate-400 hover:text-slate-200 transition"><i class="fa-solid fa-right-from-bracket"></i></button>
+                `;
+                return;
+            }
+
+            if (myStaffStatus.status === 'denied') {
+                container.innerHTML = `
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-950 text-rose-400 border border-rose-800">
+                        <i class="fa-solid fa-ban mr-1.5"></i> Access Denied
+                    </span>
+                    <button onclick="signOutUser()" title="Sign out" class="p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-slate-400 hover:text-slate-200 transition"><i class="fa-solid fa-right-from-bracket"></i></button>
+                `;
+                return;
+            }
+
+            const adminBtn = myStaffStatus.role === 'admin' ? `
+                <button onclick="openAdminPanel()" title="Admin panel" class="relative p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-gold-400 hover:text-gold-300 transition">
+                    <i class="fa-solid fa-user-shield"></i>
+                    ${pendingStaffList.length > 0 ? `<span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">${pendingStaffList.length}</span>` : ''}
+                </button>
+            ` : '';
+
+            container.innerHTML = `
+                <span class="hidden sm:inline text-xs text-slate-400 max-w-[160px] truncate" title="${escapeHtml(currentUser.email)}">${escapeHtml(currentUser.email)}</span>
+                ${adminBtn}
+                <button onclick="signOutUser()" title="Sign out" class="p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-slate-400 hover:text-slate-200 transition"><i class="fa-solid fa-right-from-bracket"></i></button>
+            `;
+        }
+
+        // AUTH MODAL (Sign In / Sign Up)
+        function openAuthModal(mode) {
+            authModalMode = mode || 'signin';
+            document.getElementById('authError').classList.add('hidden');
+            document.getElementById('authEmail').value = '';
+            document.getElementById('authPassword').value = '';
+            syncAuthModalTabs();
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function switchAuthTab(mode) {
+            authModalMode = mode;
+            document.getElementById('authError').classList.add('hidden');
+            syncAuthModalTabs();
+        }
+
+        function syncAuthModalTabs() {
+            const isSignUp = authModalMode === 'signup';
+            document.getElementById('authTabSignIn').className = !isSignUp ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS;
+            document.getElementById('authTabSignUp').className = isSignUp ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS;
+            document.getElementById('authSubmitBtn').textContent = isSignUp ? 'Create Account' : 'Sign In';
+            document.getElementById('authForgotLink').classList.toggle('hidden', isSignUp);
+        }
+
+        function authErrorMessage(err) {
+            const map = {
+                'auth/email-already-in-use': 'An account with that email already exists — try signing in instead.',
+                'auth/invalid-email': "That doesn't look like a valid email address.",
+                'auth/weak-password': 'Password should be at least 6 characters.',
+                'auth/wrong-password': 'Incorrect password.',
+                'auth/user-not-found': 'No account found with that email.',
+                'auth/invalid-credential': 'Incorrect email or password.',
+                'auth/too-many-requests': 'Too many attempts — please wait a bit and try again.'
+            };
+            return map[err.code] || (err.message || 'Something went wrong — please try again.');
+        }
+
+        async function handleAuthSubmit() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const errorEl = document.getElementById('authError');
+            errorEl.classList.add('hidden');
+
+            if (!auth) {
+                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
+                return;
+            }
+            if (!email || !password) {
+                errorEl.textContent = 'Please enter both email and password.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                if (authModalMode === 'signup') {
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    await setDoc(doc(db, 'staff', cred.user.uid), {
+                        email: cred.user.email,
+                        status: 'pending',
+                        role: 'staff',
+                        requestedAt: serverTimestamp()
+                    });
+                    closeAuthModal();
+                    showToast('Account created! An admin needs to approve it before you can add, edit, or delete bookings.');
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    closeAuthModal();
+                    showToast('Signed in.');
+                }
+            } catch (err) {
+                console.error('Auth error:', err);
+                errorEl.textContent = authErrorMessage(err);
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function signOutUser() {
+            if (!auth) return;
+            try {
+                await signOut(auth);
+                showToast('Signed out.');
+            } catch (err) {
+                console.error('Sign out failed:', err);
+            }
+        }
+
+        async function handlePasswordReset() {
+            const email = document.getElementById('authEmail').value.trim();
+            const errorEl = document.getElementById('authError');
+            if (!email) {
+                errorEl.textContent = 'Enter your email above first, then click "Forgot password?" again.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showToast('Password reset email sent — check your inbox.');
+            } catch (err) {
+                console.error('Password reset failed:', err);
+                errorEl.textContent = authErrorMessage(err);
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // ADMIN PANEL (pending sign-ups + recent deletions)
+        function openAdminPanel() {
+            renderAdminPanel();
+            document.getElementById('adminPanelModal').classList.remove('hidden');
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminPanelModal').classList.add('hidden');
+        }
+
+        function renderAdminPanel() {
+            const pendingList = document.getElementById('adminPendingList');
+            const deletionsList = document.getElementById('adminDeletionsList');
+            if (!pendingList || !deletionsList) return;
+
+            pendingList.innerHTML = pendingStaffList.length === 0
+                ? `<p class="text-xs text-slate-500 text-center py-6">No pending sign-up requests.</p>`
+                : pendingStaffList.map(s => `
+                    <div class="flex items-center justify-between gap-3 p-3 bg-dark-900 border border-dark-600 rounded-xl">
+                        <p class="text-xs font-semibold text-slate-100 truncate min-w-0">${escapeHtml(s.email)}</p>
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <button onclick="denyStaff('${s.uid}')" class="px-2.5 py-1.5 bg-dark-700 hover:bg-rose-950 text-rose-400 text-xs font-semibold rounded-lg transition border border-dark-600">Deny</button>
+                            <button onclick="approveStaff('${s.uid}')" class="px-2.5 py-1.5 gold-gradient-bg text-black text-xs font-bold rounded-lg transition">Approve</button>
+                        </div>
+                    </div>
+                `).join('');
+
+            deletionsList.innerHTML = recentDeletionsList.length === 0
+                ? `<p class="text-xs text-slate-500 text-center py-6">No deletions recorded yet.</p>`
+                : recentDeletionsList.map(entry => `
+                    <div class="p-3 bg-dark-900 border border-dark-600 rounded-xl">
+                        <p class="text-xs text-slate-200 truncate">${escapeHtml(entry.bookingSummary || '(no summary)')}</p>
+                        <p class="text-[10px] text-slate-500">Deleted by ${escapeHtml(entry.deletedByEmail || 'unknown')}</p>
+                    </div>
+                `).join('');
+        }
+
+        async function approveStaff(uid) {
+            if (!isAdmin()) return;
+            try {
+                await updateDoc(doc(db, 'staff', uid), {
+                    status: 'approved',
+                    reviewedAt: serverTimestamp(),
+                    reviewedBy: currentUser.email
+                });
+                showToast('Staff account approved.');
+            } catch (err) {
+                console.error('Approve failed:', err);
+                showToast('Could not approve: ' + err.message, true);
+            }
+        }
+
+        async function denyStaff(uid) {
+            if (!isAdmin()) return;
+            if (!confirm('Deny this sign-up request?')) return;
+            try {
+                await updateDoc(doc(db, 'staff', uid), {
+                    status: 'denied',
+                    reviewedAt: serverTimestamp(),
+                    reviewedBy: currentUser.email
+                });
+                showToast('Sign-up request denied.');
+            } catch (err) {
+                console.error('Deny failed:', err);
+                showToast('Could not deny: ' + err.message, true);
             }
         }
 
@@ -457,7 +845,8 @@
 
                 return {
                     startDate: formatDateString(y1, m1, d1),
-                    endDate: formatDateString(y2, m2, d2)
+                    endDate: formatDateString(y2, m2, d2),
+                    dateFound: true
                 };
             }
 
@@ -473,7 +862,8 @@
 
                 return {
                     startDate: formatDateString(y, m, d1),
-                    endDate: formatDateString(y, m, d2)
+                    endDate: formatDateString(y, m, d2),
+                    dateFound: true
                 };
             }
 
@@ -488,7 +878,7 @@
                 let yearNum = monthDayMatch[5] ? parseInt(monthDayMatch[5]) : resolveUpcomingYear(monthNum, dayNum);
 
                 const formatted = formatDateString(yearNum, monthNum, dayNum);
-                return { startDate: formatted, endDate: formatted };
+                return { startDate: formatted, endDate: formatted, dateFound: true };
             }
 
             // Pattern 4: Numeric Dates "10/31/2026", "2026-10-31"
@@ -506,12 +896,13 @@
                 else { m = p1 - 1; d = p2; y = resolveUpcomingYear(m, d); }
 
                 const formatted = formatDateString(y, m, d);
-                return { startDate: formatted, endDate: formatted };
+                return { startDate: formatted, endDate: formatted, dateFound: true };
             }
 
-            // Fallback: Default to current date if format not matched
+            // Fallback: no recognizable date in the text — caller should warn rather than
+            // silently save a booking plotted on today's date.
             const todayStr = new Date().toISOString().split('T')[0];
-            return { startDate: todayStr, endDate: todayStr };
+            return { startDate: todayStr, endDate: todayStr, dateFound: false };
         }
 
         function formatDateString(y, m, d) {
@@ -521,6 +912,26 @@
         }
 
         // ADD BOOKING ACTION
+        // The resort normally runs up to 2 bookings a day (e.g. an 8am-5pm day tour plus a
+        // 7pm-5am night tour), so that's expected and should never trigger a warning — only
+        // a date that would end up with MORE than that should prompt a confirmation.
+        const MAX_BOOKINGS_PER_DAY = 2;
+
+        // Any existing booking whose date range overlaps [startDate, endDate].
+        // Dates are plain YYYY-MM-DD strings, so lexical comparison == chronological comparison.
+        function findOverlappingBookings(startDate, endDate, excludeId) {
+            return bookings.filter(b => b.id !== excludeId && startDate <= b.endDate && b.startDate <= endDate);
+        }
+
+        function overlapWarningText(overlaps) {
+            const lines = overlaps.slice(0, 5).map(b => {
+                const range = b.startDate === b.endDate ? b.startDate : `${b.startDate} to ${b.endDate}`;
+                return `• ${b.rawText.split('\n')[0]} (${range})`;
+            }).join('\n');
+            const more = overlaps.length > 5 ? `\n...and ${overlaps.length - 5} more` : '';
+            return `This date already has ${overlaps.length} booking(s), the resort's usual max per day (e.g. day tour + night tour):\n\n${lines}${more}\n\nAdd another anyway?`;
+        }
+
         async function processAndAddBooking() {
             const textInput = document.getElementById('rawTextInput');
             const rawText = textInput.value.trim();
@@ -530,19 +941,29 @@
                 return;
             }
 
-            if (!db) {
-                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
+            if (!canWrite()) {
+                showToast(writeGateMessage(), true);
                 return;
             }
 
             const parsed = parseDatesFromText(rawText);
+            if (!parsed.dateFound) {
+                showToast('Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
+                return;
+            }
+
+            const overlaps = findOverlappingBookings(parsed.startDate, parsed.endDate, null);
+            if (overlaps.length >= MAX_BOOKINGS_PER_DAY && !confirm(overlapWarningText(overlaps))) {
+                return;
+            }
 
             try {
                 await addDoc(collection(db, 'bookings'), {
                     startDate: parsed.startDate,
                     endDate: parsed.endDate,
                     rawText: rawText,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    createdByEmail: currentUser.email
                 });
 
                 textInput.value = '';
@@ -669,21 +1090,28 @@
                         </div>
                     `;
                 } else {
+                    const actionButtons = isApproved() ? `
+                        <div class="flex items-center space-x-1">
+                            <button onclick="startEditBooking('${b.id}')" class="text-gold-400 hover:text-gold-300 hover:bg-gold-500/10 px-2 py-1 rounded transition text-xs font-bold flex items-center space-x-1">
+                                <i class="fa-solid fa-pen"></i>
+                                <span>Edit</span>
+                            </button>
+                            <button onclick="deleteBooking('${b.id}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2 py-1 rounded transition text-xs font-bold flex items-center space-x-1">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Delete</span>
+                            </button>
+                        </div>
+                    ` : '';
+                    const attribution = b.updatedByEmail
+                        ? `Last edited by ${escapeHtml(b.updatedByEmail)}`
+                        : (b.createdByEmail ? `Added by ${escapeHtml(b.createdByEmail)}` : '');
                     card.innerHTML = `
                         <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-dark-600 pb-2">
                             <span class="text-gold-400"><i class="fa-solid fa-calendar-day mr-1.5"></i>${dateBadge}</span>
-                            <div class="flex items-center space-x-1">
-                                <button onclick="startEditBooking('${b.id}')" class="text-gold-400 hover:text-gold-300 hover:bg-gold-500/10 px-2 py-1 rounded transition text-xs font-bold flex items-center space-x-1">
-                                    <i class="fa-solid fa-pen"></i>
-                                    <span>Edit</span>
-                                </button>
-                                <button onclick="deleteBooking('${b.id}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2 py-1 rounded transition text-xs font-bold flex items-center space-x-1">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                    <span>Delete</span>
-                                </button>
-                            </div>
+                            ${actionButtons}
                         </div>
                         <pre class="text-xs sm:text-sm font-mono text-slate-200 whitespace-pre-wrap leading-relaxed bg-dark-800 p-3.5 rounded-lg border border-dark-600/80">${escapeHtml(b.rawText)}</pre>
+                        ${attribution ? `<p class="text-[10px] text-slate-500">${attribution}</p>` : ''}
                     `;
                 }
                 list.appendChild(card);
@@ -706,8 +1134,8 @@
         }
 
         async function saveEditedBooking(id) {
-            if (!db) {
-                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
+            if (!canWrite()) {
+                showToast(writeGateMessage(), true);
                 return;
             }
             const textarea = document.getElementById(`editTextarea_${id}`);
@@ -718,13 +1146,23 @@
             }
 
             const parsed = parseDatesFromText(rawText);
+            if (!parsed.dateFound) {
+                showToast('Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
+                return;
+            }
+
+            const overlaps = findOverlappingBookings(parsed.startDate, parsed.endDate, id);
+            if (overlaps.length >= MAX_BOOKINGS_PER_DAY && !confirm(overlapWarningText(overlaps))) {
+                return;
+            }
 
             try {
                 await updateDoc(doc(db, 'bookings', id), {
                     startDate: parsed.startDate,
                     endDate: parsed.endDate,
                     rawText: rawText,
-                    updatedAt: serverTimestamp()
+                    updatedAt: serverTimestamp(),
+                    updatedByEmail: currentUser.email
                 });
                 editingBookingId = null;
                 showToast('Booking updated for everyone.');
@@ -736,8 +1174,8 @@
         }
 
         async function deleteBooking(id) {
-            if (!db) {
-                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
+            if (!canWrite()) {
+                showToast(writeGateMessage(), true);
                 return;
             }
             const confirmation = prompt('This will permanently delete this booking for everyone. Type 12345 to confirm.');
@@ -747,8 +1185,17 @@
                 }
                 return;
             }
+            const target = bookings.find(b => b.id === id);
             try {
                 await deleteDoc(doc(db, 'bookings', id));
+                if (target) {
+                    const range = target.startDate === target.endDate ? target.startDate : `${target.startDate} to ${target.endDate}`;
+                    addDoc(collection(db, 'deletionLog'), {
+                        bookingSummary: `${target.rawText.split('\n')[0]} (${range})`,
+                        deletedByEmail: currentUser.email,
+                        deletedAt: serverTimestamp()
+                    }).catch(err => console.error('Could not write deletion log:', err));
+                }
                 closeDayModal();
                 showToast('Booking deleted for everyone.');
             } catch (err) {
@@ -769,15 +1216,6 @@
             }
         }
 
-        // PUBLISH GUIDE MODAL
-        function openPublishGuide() {
-            document.getElementById('publishGuideModal').classList.remove('hidden');
-        }
-
-        function closePublishGuide() {
-            document.getElementById('publishGuideModal').classList.add('hidden');
-        }
-
         // CALENDAR NAV CONTROLS
         function changeMonth(delta) {
             currentMonth += delta;
@@ -791,6 +1229,60 @@
             currentMonth = now.getMonth();
             currentYear = now.getFullYear();
             renderCalendar();
+        }
+
+        // SEARCH (across all months, not just the one currently shown)
+        function handleSearchInput() {
+            searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+            document.getElementById('searchClearBtn').classList.toggle('hidden', searchQuery.length === 0);
+            renderSearchResults();
+        }
+
+        function clearSearch() {
+            searchQuery = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchClearBtn').classList.add('hidden');
+            renderSearchResults();
+        }
+
+        function renderSearchResults() {
+            const panel = document.getElementById('searchResults');
+            if (!panel) return;
+
+            if (!searchQuery) {
+                panel.classList.add('hidden');
+                panel.innerHTML = '';
+                return;
+            }
+
+            const matches = bookings
+                .filter(b => b.rawText.toLowerCase().includes(searchQuery))
+                .sort((a, b) => a.startDate.localeCompare(b.startDate))
+                .slice(0, 15);
+
+            panel.innerHTML = matches.length === 0
+                ? `<div class="p-3 text-xs text-slate-500 text-center">No bookings match "${escapeHtml(searchQuery)}".</div>`
+                : matches.map(b => {
+                    const range = b.startDate === b.endDate ? b.startDate : `${b.startDate} to ${b.endDate}`;
+                    const firstLine = b.rawText.split('\n')[0];
+                    return `
+                        <button onclick="jumpToSearchResult('${b.startDate}')" class="w-full text-left p-3 hover:bg-dark-700/80 transition">
+                            <p class="text-xs font-semibold text-slate-100 truncate">${escapeHtml(firstLine)}</p>
+                            <p class="text-[10px] text-gold-400">${range}</p>
+                        </button>
+                    `;
+                }).join('');
+
+            panel.classList.remove('hidden');
+        }
+
+        function jumpToSearchResult(dateStr) {
+            const [y, m] = dateStr.split('-').map(Number);
+            currentYear = y;
+            currentMonth = m - 1;
+            renderCalendar();
+            openDayModal(dateStr);
+            clearSearch();
         }
 
         function showToast(msg, isError = false) {
@@ -820,8 +1312,6 @@
         window.processAndAddBooking = processAndAddBooking;
         window.deleteBooking = deleteBooking;
         window.loadSampleText = loadSampleText;
-        window.openPublishGuide = openPublishGuide;
-        window.closePublishGuide = closePublishGuide;
         window.changeMonth = changeMonth;
         window.goToToday = goToToday;
         window.closeDayModal = closeDayModal;
@@ -829,6 +1319,19 @@
         window.cancelEditBooking = cancelEditBooking;
         window.saveEditedBooking = saveEditedBooking;
         window.toggleTheme = toggleTheme;
+        window.handleSearchInput = handleSearchInput;
+        window.clearSearch = clearSearch;
+        window.jumpToSearchResult = jumpToSearchResult;
+        window.openAuthModal = openAuthModal;
+        window.closeAuthModal = closeAuthModal;
+        window.switchAuthTab = switchAuthTab;
+        window.handleAuthSubmit = handleAuthSubmit;
+        window.handlePasswordReset = handlePasswordReset;
+        window.signOutUser = signOutUser;
+        window.openAdminPanel = openAdminPanel;
+        window.closeAdminPanel = closeAdminPanel;
+        window.approveStaff = approveStaff;
+        window.denyStaff = denyStaff;
     </script>
 </body>
 </html>
