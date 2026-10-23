@@ -654,6 +654,10 @@
             updateAppGate();
             initCloudSync();
             renderCalendar();
+            // Establishes the base "nothing open" state in place (no new entry) so the
+            // very first open action has something real to push on top of — see the
+            // BROWSER BACK-BUTTON SUPPORT block below for why this exists.
+            try { history.replaceState({ casanovaNav: true, page: 'calendar', dayModalDate: null, authModalOpen: false }, '', location.href); } catch (e) { /* History API unavailable */ }
         };
 
         // THEME (light default; persisted per-browser via localStorage — a display
@@ -849,6 +853,70 @@
             financialsView.classList.toggle('hidden', !approved || page !== 'financials');
         }
 
+        // BROWSER BACK-BUTTON SUPPORT
+        // Without this, opening the day modal / admin panel / financials / sign-in modal
+        // never touches browser history, so the very first Back press on mobile Safari
+        // leaves the app entirely (back to whatever page was open before this one) instead
+        // of just closing the thing the visitor opened. Every open action below pushes a
+        // history entry describing the full visible state; popstate (fired by Back/Forward)
+        // re-applies that same state without pushing again, so Back steps through the app's
+        // own views first and only leaves the site once there's nothing left to undo.
+        function currentHistorySnapshot() {
+            return {
+                casanovaNav: true,
+                page: currentPage,
+                dayModalDate: document.getElementById('dayModal').classList.contains('hidden') ? null : currentModalDate,
+                authModalOpen: !document.getElementById('authModal').classList.contains('hidden')
+            };
+        }
+
+        function pushHistorySnapshot() {
+            try {
+                history.pushState(currentHistorySnapshot(), '', location.href);
+            } catch (e) { /* History API unavailable — app still works, just no back-button support */ }
+        }
+
+        // Used by every closeX()/back-style action instead of hiding the element directly,
+        // so the browser's history stack and the app's visible state never drift apart —
+        // popstate (below) performs the actual hide once the browser finishes navigating.
+        // Falls back to applying the base state directly if there's nothing to go back to
+        // (e.g. history API unsupported, or this state wasn't reached via a push).
+        function navigateBack(fallback) {
+            if (window.history.state && window.history.state.casanovaNav) {
+                history.back();
+            } else {
+                fallback();
+            }
+        }
+
+        function applyHistorySnapshot(state) {
+            const s = (state && state.casanovaNav) ? state : { page: 'calendar', dayModalDate: null, authModalOpen: false };
+            currentPage = isApproved() ? s.page : 'calendar';
+            // Guards against navigating (forward/back) into a page the viewer's current
+            // role no longer has access to — e.g. their admin/owner access was revoked
+            // while that state was sitting in history.
+            if (currentPage === 'admin' && !isAdmin()) currentPage = 'calendar';
+            if (currentPage === 'financials' && !canSeeFinancials()) currentPage = 'calendar';
+            applyContentVisibility();
+            if (currentPage === 'admin') renderAdminPanel();
+            if (currentPage === 'financials') renderFinancials();
+
+            const dayModal = document.getElementById('dayModal');
+            if (s.dayModalDate && isApproved()) {
+                showDayModalFor(s.dayModalDate);
+                dayModal.classList.remove('hidden');
+            } else {
+                editingBookingId = null;
+                dayModal.classList.add('hidden');
+            }
+
+            document.getElementById('authModal').classList.toggle('hidden', !s.authModalOpen);
+        }
+
+        window.addEventListener('popstate', (event) => {
+            applyHistorySnapshot(event.state);
+        });
+
         function updateAppGate() {
             const gate = document.getElementById('appGate');
             const content = document.getElementById('appContent');
@@ -961,10 +1029,11 @@
             document.getElementById('authPassword').value = '';
             syncAuthModalTabs();
             document.getElementById('authModal').classList.remove('hidden');
+            pushHistorySnapshot();
         }
 
         function closeAuthModal() {
-            document.getElementById('authModal').classList.add('hidden');
+            navigateBack(() => { document.getElementById('authModal').classList.add('hidden'); });
         }
 
         function switchAuthTab(mode) {
@@ -1139,11 +1208,14 @@
             switchAdminTab('pending');
             renderAdminPanel();
             applyContentVisibility();
+            pushHistorySnapshot();
         }
 
         function closeAdminPanel() {
-            currentPage = 'calendar';
-            applyContentVisibility();
+            navigateBack(() => {
+                currentPage = 'calendar';
+                applyContentVisibility();
+            });
         }
 
         function openFinancialsView() {
@@ -1152,11 +1224,14 @@
             switchFinancialsTab('income');
             renderFinancials();
             applyContentVisibility();
+            pushHistorySnapshot();
         }
 
         function closeFinancialsView() {
-            currentPage = 'calendar';
-            applyContentVisibility();
+            navigateBack(() => {
+                currentPage = 'calendar';
+                applyContentVisibility();
+            });
         }
 
         function switchAdminTab(tab) {
@@ -2133,13 +2208,21 @@
         let currentModalDate = null;
         let editingBookingId = null;
 
-        function openDayModal(dateStr) {
+        // Shared by openDayModal and applyHistorySnapshot (Back/Forward) — just the
+        // content fill, no history push and no visibility toggle, since the two callers
+        // need those handled differently.
+        function showDayModalFor(dateStr) {
             currentModalDate = dateStr;
             editingBookingId = null;
             const d = new Date(dateStr + 'T00:00:00');
             document.getElementById('dayModalTitle').innerText = `Bookings for ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
             renderDayModalList();
+        }
+
+        function openDayModal(dateStr) {
+            showDayModalFor(dateStr);
             document.getElementById('dayModal').classList.remove('hidden');
+            pushHistorySnapshot();
         }
 
         function renderDayModalList() {
@@ -2249,8 +2332,10 @@
         }
 
         function closeDayModal() {
-            editingBookingId = null;
-            document.getElementById('dayModal').classList.add('hidden');
+            navigateBack(() => {
+                editingBookingId = null;
+                document.getElementById('dayModal').classList.add('hidden');
+            });
         }
 
         function startEditBooking(id) {
