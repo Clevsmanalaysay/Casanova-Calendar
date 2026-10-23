@@ -95,6 +95,10 @@
 
             <!-- ACTIONS -->
             <div class="flex items-center space-x-3">
+                <span id="syncStatus" class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-dark-700 text-slate-400 border border-dark-600">
+                    <span id="syncStatusDot" class="w-2 h-2 mr-1.5 rounded-full bg-slate-500"></span>
+                    <span id="syncStatusText">Connecting...</span>
+                </span>
                 <button onclick="openPublishGuide()" class="px-3.5 py-2 bg-dark-700 hover:bg-dark-600 text-gold-400 hover:text-gold-300 text-xs font-semibold rounded-xl transition border gold-border flex items-center space-x-2 shadow-sm">
                     <i class="fa-solid fa-globe text-gold-500"></i>
                     <span class="hidden sm:inline">How to Put Live</span>
@@ -219,12 +223,36 @@
                 <button onclick="closePublishGuide()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <div class="p-6 space-y-4 text-xs text-slate-300 leading-relaxed">
-                <p>To give your resort team immediate access to this calendar on their phones or tablets, host this single file online in under 2 minutes for free:</p>
+            <div class="p-6 space-y-4 text-xs text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto">
+                <p>Bookings now sync live through a shared cloud database (Firebase), so every visitor to the link sees the same calendar. Do Step 1 once, then host the file with Step 2 or 3.</p>
+
+                <div class="bg-dark-900 p-4 rounded-xl border border-gold-500/40 space-y-2">
+                    <p class="font-bold text-gold-400 text-sm flex items-center space-x-2">
+                        <span>1. One-Time: Connect the Shared Database (Firebase)</span>
+                    </p>
+                    <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
+                        <li>Go to <strong class="text-slate-200">console.firebase.google.com</strong> and create a free project.</li>
+                        <li>In the project, open <strong class="text-slate-200">Build → Firestore Database → Create database</strong>, start in test mode, pick a region.</li>
+                        <li>Open <strong class="text-slate-200">Project Settings (gear icon) → General</strong>, scroll to "Your apps", click the Web <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">&lt;/&gt;</code> icon, and register an app.</li>
+                        <li>Copy the <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">firebaseConfig</code> object it shows you, and paste it into this file's <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">index.html</code> near the top of the last <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">&lt;script type="module"&gt;</code> block, replacing the <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">YOUR_...</code> placeholders.</li>
+                        <li>In <strong class="text-slate-200">Firestore Database → Rules</strong>, paste:
+                            <pre class="bg-dark-800 text-gold-300 px-2.5 py-2 rounded border border-dark-600 mt-1.5 overflow-x-auto text-[10px] leading-snug">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+                            then click Publish.
+                        </li>
+                    </ol>
+                    <p class="text-amber-400/90 text-[11px] pt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>These rules make bookings readable and writable by anyone who has the link (no login) — that's what makes it "viewable by everyone," but it also means anyone with the link can edit or delete entries. Good for an internal team link; tighten the rules later if you need staff logins.</p>
+                </div>
 
                 <div class="bg-dark-900 p-4 rounded-xl border border-dark-600 space-y-2">
                     <p class="font-bold text-gold-400 text-sm flex items-center space-x-2">
-                        <span>1. Netlify Drop (Fastest)</span>
+                        <span>2. Netlify Drop (Fastest)</span>
                     </p>
                     <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
                         <li>Visit <strong class="text-slate-200">app.netlify.com/drop</strong></li>
@@ -235,7 +263,7 @@
 
                 <div class="bg-dark-900 p-4 rounded-xl border border-dark-600 space-y-2">
                     <p class="font-bold text-gold-400 text-sm flex items-center space-x-2">
-                        <span>2. GitHub Pages (Free Forever)</span>
+                        <span>3. GitHub Pages (Free Forever)</span>
                     </p>
                     <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
                         <li>Create a free account on <strong class="text-slate-200">GitHub.com</strong>.</li>
@@ -259,11 +287,32 @@
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
-    <script>
+    <script type="module">
+        // Firebase is loaded dynamically (not as a static top-level import) so that a
+        // blocked/flaky CDN only disables cloud sync instead of crashing the whole page —
+        // a static import that fails to resolve aborts the entire module.
+        let initializeApp, getFirestore, collection, doc, addDoc, deleteDoc,
+            onSnapshot, query, orderBy, serverTimestamp;
+
+        // ============================================================
+        // ONE-TIME SETUP: paste your Firebase project config below.
+        // Firebase Console -> Project Settings -> General -> Your apps -> Web app
+        // See the "How to Put Live" guide in the app header for full steps.
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
         // APP STATE
         let bookings = [];
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
+        let db = null;
 
         const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const MONTH_MAP = {
@@ -282,33 +331,60 @@
         ];
 
         window.onload = function() {
-            loadBookings();
+            initCloudSync();
             renderCalendar();
         };
 
-        // STORAGE MANAGEMENT
-        function loadBookings() {
-            const saved = localStorage.getItem('casanova_resort_bookings');
-            if (saved) {
-                bookings = JSON.parse(saved);
-            } else {
-                // Pre-populate realistic initial Casanova Resort sample data
-                const sample1 = "Jane de leon\nOctober 31 2026\nDay tour 8am to 5pm\n7th birthday celebration\n100pax";
-                const sample2 = "Reyes Family\nNov 1 to Nov 3 2026\nOvernight Garden & Pool Stay\nFull Setup + Catering\n₱25,000 Deposit Paid";
-                
-                const d1 = parseDatesFromText(sample1);
-                const d2 = parseDatesFromText(sample2);
-
-                bookings = [
-                    { id: 'b_1', startDate: d1.startDate, endDate: d1.endDate, rawText: sample1 },
-                    { id: 'b_2', startDate: d2.startDate, endDate: d2.endDate, rawText: sample2 }
-                ];
-                saveBookings();
-            }
+        // CLOUD SYNC (Firestore) — every visitor reads/writes the same shared collection
+        function setSyncStatus(state) {
+            const dot = document.getElementById('syncStatusDot');
+            const text = document.getElementById('syncStatusText');
+            const wrap = document.getElementById('syncStatus');
+            const presets = {
+                connecting: { dot: 'bg-slate-500', text: 'text-slate-400', border: 'border-dark-600', bg: 'bg-dark-700', label: 'Connecting...' },
+                live: { dot: 'bg-emerald-400 animate-pulse', text: 'text-emerald-400', border: 'border-emerald-800', bg: 'bg-emerald-950', label: 'Live Synced' },
+                error: { dot: 'bg-rose-400', text: 'text-rose-400', border: 'border-rose-800', bg: 'bg-rose-950', label: 'Sync Error' },
+                unconfigured: { dot: 'bg-amber-400', text: 'text-amber-400', border: 'border-amber-800', bg: 'bg-amber-950', label: 'Database Not Set Up' }
+            };
+            const p = presets[state] || presets.connecting;
+            dot.className = `w-2 h-2 mr-1.5 rounded-full ${p.dot}`;
+            text.className = p.text;
+            text.innerText = p.label;
+            wrap.className = `inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${p.bg} border ${p.border}`;
         }
 
-        function saveBookings() {
-            localStorage.setItem('casanova_resort_bookings', JSON.stringify(bookings));
+        async function initCloudSync() {
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'YOUR_API_KEY') {
+                setSyncStatus('unconfigured');
+                showToast('Shared database not set up yet — open "How to Put Live" for setup steps.', true);
+                return;
+            }
+
+            try {
+                const appMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+                const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+                ({ initializeApp } = appMod);
+                ({ getFirestore, collection, doc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } = fsMod);
+
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                const bookingsQuery = query(collection(db, 'bookings'), orderBy('startDate'));
+
+                onSnapshot(bookingsQuery, (snapshot) => {
+                    bookings = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+                    setSyncStatus('live');
+                    renderCalendar();
+                }, (err) => {
+                    console.error('Firestore sync error:', err);
+                    setSyncStatus('error');
+                    showToast('Cloud sync lost connection: ' + err.message, true);
+                });
+            } catch (err) {
+                console.error('Firebase init/load error:', err);
+                db = null;
+                setSyncStatus('error');
+                showToast('Could not load the shared database (check your internet connection or Firebase config).', true);
+            }
         }
 
         // SMART NATURAL DATE PARSER
@@ -394,7 +470,7 @@
         }
 
         // ADD BOOKING ACTION
-        function processAndAddBooking() {
+        async function processAndAddBooking() {
             const textInput = document.getElementById('rawTextInput');
             const rawText = textInput.value.trim();
 
@@ -403,26 +479,34 @@
                 return;
             }
 
+            if (!db) {
+                showToast('Shared database not set up yet — open "How to Put Live" for setup steps.', true);
+                return;
+            }
+
             const parsed = parseDatesFromText(rawText);
 
-            const newBooking = {
-                id: 'b_' + Date.now(),
-                startDate: parsed.startDate,
-                endDate: parsed.endDate,
-                rawText: rawText
-            };
+            try {
+                await addDoc(collection(db, 'bookings'), {
+                    startDate: parsed.startDate,
+                    endDate: parsed.endDate,
+                    rawText: rawText,
+                    createdAt: serverTimestamp()
+                });
 
-            bookings.push(newBooking);
-            saveBookings();
-            textInput.value = '';
+                textInput.value = '';
 
-            // Jump calendar to the month of the added booking
-            const [bYear, bMonth] = parsed.startDate.split('-').map(Number);
-            currentYear = bYear;
-            currentMonth = bMonth - 1;
+                // Jump calendar to the month of the added booking
+                const [bYear, bMonth] = parsed.startDate.split('-').map(Number);
+                currentYear = bYear;
+                currentMonth = bMonth - 1;
 
-            renderCalendar();
-            showToast(`Booking plotted for ${parsed.startDate}${parsed.startDate !== parsed.endDate ? ' to ' + parsed.endDate : ''}`);
+                renderCalendar();
+                showToast(`Booking plotted for ${parsed.startDate}${parsed.startDate !== parsed.endDate ? ' to ' + parsed.endDate : ''} — synced for everyone`);
+            } catch (err) {
+                console.error('Add booking failed:', err);
+                showToast('Could not save booking: ' + err.message, true);
+            }
         }
 
         // RENDER MONTHLY CALENDAR
@@ -532,12 +616,19 @@
             document.getElementById('dayModal').classList.add('hidden');
         }
 
-        function deleteBooking(id) {
-            bookings = bookings.filter(b => b.id !== id);
-            saveBookings();
-            closeDayModal();
-            renderCalendar();
-            showToast('Booking deleted.');
+        async function deleteBooking(id) {
+            if (!db) {
+                showToast('Shared database not set up yet — open "How to Put Live" for setup steps.', true);
+                return;
+            }
+            try {
+                await deleteDoc(doc(db, 'bookings', id));
+                closeDayModal();
+                showToast('Booking deleted for everyone.');
+            } catch (err) {
+                console.error('Delete booking failed:', err);
+                showToast('Could not delete booking: ' + err.message, true);
+            }
         }
 
         // SAMPLE LOADER FOR TESTING
@@ -597,6 +688,17 @@
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
+
+        // Expose handlers referenced by inline onclick="" attributes —
+        // required because this is a module script (module scope isn't global).
+        window.processAndAddBooking = processAndAddBooking;
+        window.deleteBooking = deleteBooking;
+        window.loadSampleText = loadSampleText;
+        window.openPublishGuide = openPublishGuide;
+        window.closePublishGuide = closePublishGuide;
+        window.changeMonth = changeMonth;
+        window.goToToday = goToToday;
+        window.closeDayModal = closeDayModal;
     </script>
 </body>
 </html>
