@@ -1825,6 +1825,32 @@
             return `This date already has ${overlaps.length} booking(s), the resort's usual max per day (e.g. day tour + night tour):\n\n${lines}${more}\n\nAdd another anyway?`;
         }
 
+        // A pasted booking message sometimes includes the price (e.g. "₱25,000 Deposit
+        // Paid"). That line is pulled out — never saved as part of the visible note —
+        // and its amount routed to the hidden bookingFinancials collection instead, so
+        // it reaches the Income tab but never the calendar text regular staff can read.
+        const PRICE_LINE_PATTERN = /(?:₱|PHP|Php)\s?([\d,]+(?:\.\d{1,2})?)/i;
+
+        function extractPriceAndStrip(text) {
+            const lines = text.split('\n');
+            let price = null;
+            const keptLines = [];
+            for (const line of lines) {
+                const match = line.match(PRICE_LINE_PATTERN);
+                if (match) {
+                    if (price === null) {
+                        price = parseFloat(match[1].replace(/,/g, ''));
+                    }
+                    continue; // drop this line from the saved note entirely
+                }
+                keptLines.push(line);
+            }
+            const strippedText = keptLines.join('\n').trim();
+            // If the price was the only content (rare), fall back to the original text
+            // rather than saving an empty note.
+            return { price, strippedText: strippedText || text };
+        }
+
         async function processAndAddBooking() {
             const textInput = document.getElementById('rawTextInput');
             const rawText = textInput.value.trim();
@@ -1850,15 +1876,26 @@
                 return;
             }
 
+            const { price, strippedText } = extractPriceAndStrip(rawText);
+
             try {
-                await addDoc(collection(db, 'bookings'), {
+                const newDocRef = await addDoc(collection(db, 'bookings'), {
                     startDate: parsed.startDate,
                     endDate: parsed.endDate,
-                    rawText: rawText,
+                    rawText: strippedText,
                     createdAt: serverTimestamp(),
                     createdByEmail: currentUser.email,
                     createdByName: staffDisplayLabel(myStaffStatus)
                 });
+
+                if (price !== null) {
+                    setDoc(doc(db, 'bookingFinancials', newDocRef.id), {
+                        cost: price,
+                        updatedAt: serverTimestamp(),
+                        updatedByEmail: currentUser.email,
+                        updatedByName: staffDisplayLabel(myStaffStatus)
+                    }).catch(err => console.error('Could not auto-save extracted price:', err));
+                }
 
                 textInput.value = '';
 
@@ -2067,15 +2104,30 @@
                 return;
             }
 
+            const { price, strippedText } = extractPriceAndStrip(rawText);
+
             try {
                 await updateDoc(doc(db, 'bookings', id), {
                     startDate: parsed.startDate,
                     endDate: parsed.endDate,
-                    rawText: rawText,
+                    rawText: strippedText,
                     updatedAt: serverTimestamp(),
                     updatedByEmail: currentUser.email,
                     updatedByName: staffDisplayLabel(myStaffStatus)
                 });
+
+                // Only touches the cost if this edit actually contained a price line —
+                // otherwise an existing cost (set earlier, possibly manually by an
+                // admin/owner) is left exactly as it was.
+                if (price !== null) {
+                    setDoc(doc(db, 'bookingFinancials', id), {
+                        cost: price,
+                        updatedAt: serverTimestamp(),
+                        updatedByEmail: currentUser.email,
+                        updatedByName: staffDisplayLabel(myStaffStatus)
+                    }).catch(err => console.error('Could not auto-save extracted price on edit:', err));
+                }
+
                 editingBookingId = null;
                 showToast('Booking updated for everyone.');
                 closeDayModal();
