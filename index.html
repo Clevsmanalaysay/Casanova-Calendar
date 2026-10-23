@@ -198,8 +198,8 @@
         <!-- GATED APP CONTENT -->
         <div id="appContent" class="hidden space-y-6">
 
-        <!-- PASTE BOOKING SECTION -->
-        <div class="bg-dark-800 p-5 sm:p-6 rounded-2xl border gold-border gold-border-glow space-y-4">
+        <!-- PASTE BOOKING SECTION (admin/owner only — regular staff are view-only) -->
+        <div id="addBookingSection" class="hidden bg-dark-800 p-5 sm:p-6 rounded-2xl border gold-border gold-border-glow space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <label for="rawTextInput" class="text-sm font-semibold text-slate-100 flex items-center space-x-2">
                     <i class="fa-solid fa-paste text-gold-500"></i>
@@ -600,17 +600,21 @@
             if (!entry) return 'Unknown';
             return entry.displayName || entry.email || 'Unknown';
         }
+        // Regular staff are view-only — only admin/owner can add, edit, or delete
+        // bookings. Enforced here for the UI AND in the Firestore rules (bookings
+        // create/update/delete require isFinance()), so this isn't just a UI hide.
         function canWrite() {
-            return !!db && isApproved();
+            return !!db && canSeeFinancials();
         }
         function writeGateMessage() {
             if (!db) return 'Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.';
-            if (!currentUser) return 'Please sign in to add, edit, or delete bookings.';
+            if (!currentUser) return 'Please sign in to view the calendar.';
             if (!myStaffDocLoaded) return 'Loading your account — try again in a moment.';
             if (!myStaffStatus) return 'No access record found for your account — ask an admin to invite you.';
             if (myStaffStatus.status === 'pending') return 'Your account is still waiting on admin approval.';
             if (myStaffStatus.status === 'denied') return 'Your account was denied access by an admin.';
             if (myStaffStatus.status === 'revoked') return 'Your access was revoked by an admin.';
+            if (isApproved() && !canSeeFinancials()) return 'Only admins and owners can add, edit, or delete bookings.';
             return 'You do not have permission to do that.';
         }
 
@@ -906,10 +910,18 @@
             if (fields) fields.classList.toggle('hidden', !canSeeFinancials());
         }
 
+        // Regular staff are view-only: the entire Add Booking section is hidden for
+        // them, not just the Income fields within it.
+        function updateAddBookingSectionVisibility() {
+            const section = document.getElementById('addBookingSection');
+            if (section) section.classList.toggle('hidden', !canWrite());
+        }
+
         function updateAuthUI() {
             const container = document.getElementById('authControls');
             if (!container) return;
             updateBookingFormFinancialsVisibility();
+            updateAddBookingSectionVisibility();
 
             // All pre-approval messaging now lives on the full-page gate (updateAppGate);
             // the header only ever shows the signed-in state once actually approved.
@@ -2187,7 +2199,7 @@
                         </div>
                     `;
                 } else {
-                    const actionButtons = isApproved() ? `
+                    const actionButtons = canWrite() ? `
                         <div class="flex items-center space-x-1">
                             <button onclick="startEditBooking('${b.id}')" class="text-gold-400 hover:text-gold-300 hover:bg-gold-500/10 px-2 py-1 rounded transition text-xs font-bold flex items-center space-x-1">
                                 <i class="fa-solid fa-pen"></i>
@@ -2242,6 +2254,10 @@
         }
 
         function startEditBooking(id) {
+            if (!canWrite()) {
+                showToast(writeGateMessage(), true);
+                return;
+            }
             editingBookingId = id;
             renderDayModalList();
         }
