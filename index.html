@@ -1653,9 +1653,13 @@
                 showToast('Enter a valid non-negative number.', true);
                 return;
             }
+            const descInput = prompt('What is this for? (e.g. "Deposit", "Full payment") — optional', (existing && existing.description) || '');
+            if (descInput === null) return; // cancelling this step cancels the whole edit
+            const description = descInput.trim() || null;
             try {
                 await setDoc(doc(db, 'bookingFinancials', bookingId), {
                     cost: amount,
+                    description,
                     updatedAt: serverTimestamp(),
                     updatedByEmail: currentUser.email,
                     updatedByName: staffDisplayLabel(myStaffStatus)
@@ -1825,21 +1829,51 @@
             return `This date already has ${overlaps.length} booking(s), the resort's usual max per day (e.g. day tour + night tour):\n\n${lines}${more}\n\nAdd another anyway?`;
         }
 
-        // A pasted booking message sometimes includes the price (e.g. "₱25,000 Deposit
-        // Paid"). That line is pulled out — never saved as part of the visible note —
-        // and its amount routed to the hidden bookingFinancials collection instead, so
-        // it reaches the Income tab but never the calendar text regular staff can read.
-        const PRICE_LINE_PATTERN = /(?:₱|PHP|Php)\s?([\d,]+(?:\.\d{1,2})?)/i;
+        // A pasted booking message sometimes includes the price: currency-first
+        // ("₱25,000 Deposit Paid", "PHP 15000.50"), amount-first ("50000 pesos",
+        // "50,000 Peso"), or a bare number alone on its own line ("50000" / "50,000",
+        // no currency word at all). That line is pulled out — never saved as part of
+        // the visible note — and its amount routed to the hidden bookingFinancials
+        // collection instead, so it reaches the Income tab but never the calendar text
+        // staff read. Whatever else was on that same line (e.g. "Deposit Paid") is kept
+        // as an auto-filled description of what the charge was for.
+        // A bare "P" is deliberately not matched on its own (no currency word/symbol),
+        // to avoid false positives like "Pax: 100". The bare-number form additionally
+        // requires >= 100, so a lone small number (a headcount, a day count, etc. written
+        // on its own line) isn't mistaken for a price — write headcounts as "100pax",
+        // not a bare "100" alone on a line, to keep that distinction unambiguous.
+        const PRICE_LINE_PATTERNS = [
+            /(?:₱|PHP|Php)\s?([\d,]+(?:\.\d{1,2})?)/i,          // ₱25,000 / PHP 15000.50
+            /([\d,]+(?:\.\d{1,2})?)\s?(?:pesos?|php)\b/i        // 50000 pesos / 50,000 Peso
+        ];
+
+        function matchPriceInLine(line) {
+            for (const pattern of PRICE_LINE_PATTERNS) {
+                const match = line.match(pattern);
+                if (match) return { amount: match[1], matchedText: match[0] };
+            }
+            const bareMatch = line.trim().match(/^([\d,]+(?:\.\d{1,2})?)$/);
+            if (bareMatch) {
+                const numeric = parseFloat(bareMatch[1].replace(/,/g, ''));
+                if (numeric >= 100) {
+                    return { amount: bareMatch[1], matchedText: line.trim() };
+                }
+            }
+            return null;
+        }
 
         function extractPriceAndStrip(text) {
             const lines = text.split('\n');
             let price = null;
+            let priceDescription = null;
             const keptLines = [];
             for (const line of lines) {
-                const match = line.match(PRICE_LINE_PATTERN);
-                if (match) {
+                const found = matchPriceInLine(line);
+                if (found) {
                     if (price === null) {
-                        price = parseFloat(match[1].replace(/,/g, ''));
+                        price = parseFloat(found.amount.replace(/,/g, ''));
+                        const remainder = line.replace(found.matchedText, '').trim();
+                        priceDescription = remainder || null;
                     }
                     continue; // drop this line from the saved note entirely
                 }
@@ -1848,7 +1882,7 @@
             const strippedText = keptLines.join('\n').trim();
             // If the price was the only content (rare), fall back to the original text
             // rather than saving an empty note.
-            return { price, strippedText: strippedText || text };
+            return { price, priceDescription, strippedText: strippedText || text };
         }
 
         async function processAndAddBooking() {
@@ -1876,7 +1910,7 @@
                 return;
             }
 
-            const { price, strippedText } = extractPriceAndStrip(rawText);
+            const { price, priceDescription, strippedText } = extractPriceAndStrip(rawText);
 
             try {
                 const newDocRef = await addDoc(collection(db, 'bookings'), {
@@ -1891,6 +1925,7 @@
                 if (price !== null) {
                     setDoc(doc(db, 'bookingFinancials', newDocRef.id), {
                         cost: price,
+                        description: priceDescription,
                         updatedAt: serverTimestamp(),
                         updatedByEmail: currentUser.email,
                         updatedByName: staffDisplayLabel(myStaffStatus)
@@ -2044,9 +2079,12 @@
                     if (canSeeFinancials()) {
                         const fin = bookingFinancials[b.id];
                         const hasCost = fin && typeof fin.cost === 'number';
+                        const costLabel = hasCost
+                            ? `Cost: ${formatCurrency(fin.cost)}${fin.description ? ' — ' + escapeHtml(fin.description) : ''}`
+                            : 'Add cost';
                         costLine = `
                             <button onclick="setBookingCost('${b.id}')" class="w-full flex items-center justify-between px-3 py-2 bg-gold-500/10 border border-gold-500/30 rounded-lg hover:bg-gold-500/15 transition text-left">
-                                <span class="text-xs font-semibold text-gold-400"><i class="fa-solid fa-coins mr-1.5"></i>${hasCost ? 'Cost: ' + formatCurrency(fin.cost) : 'Add cost'}</span>
+                                <span class="text-xs font-semibold text-gold-400"><i class="fa-solid fa-coins mr-1.5"></i>${costLabel}</span>
                                 <i class="fa-solid fa-pen text-[10px] text-gold-400/70"></i>
                             </button>
                         `;
@@ -2104,7 +2142,7 @@
                 return;
             }
 
-            const { price, strippedText } = extractPriceAndStrip(rawText);
+            const { price, priceDescription, strippedText } = extractPriceAndStrip(rawText);
 
             try {
                 await updateDoc(doc(db, 'bookings', id), {
@@ -2122,6 +2160,7 @@
                 if (price !== null) {
                     setDoc(doc(db, 'bookingFinancials', id), {
                         cost: price,
+                        description: priceDescription,
                         updatedAt: serverTimestamp(),
                         updatedByEmail: currentUser.email,
                         updatedByName: staffDisplayLabel(myStaffStatus)
