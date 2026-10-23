@@ -1,9 +1,24 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0D0D0D]">
+<html lang="en" class="h-full bg-dark-900" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Casanova Garden Resort & Events Place - Booking Calendar</title>
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <!-- Apply saved theme before first paint to avoid a flash of the wrong theme -->
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('casanova_theme');
+                if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            } catch (e) { /* localStorage unavailable (private mode, etc.) — light stays default */ }
+        })();
+    </script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -12,34 +27,47 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { 
+                    fontFamily: {
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
                         serif: ['Playfair Display', 'serif'],
                         script: ['Great Vibes', 'cursive']
                     },
                     colors: {
+                        // gold/dark/slate below resolve through CSS variables (defined in <style>)
+                        // so every existing text-/bg-/border- class automatically re-themes —
+                        // no per-element class changes needed. text-black stays literal on purpose:
+                        // it's used for button labels on bright gold surfaces, which must stay dark
+                        // in both themes.
                         gold: {
                             100: '#FBF5E5',
                             200: '#F4E6BD',
-                            300: '#E8D08D',
-                            400: '#DCA352',
-                            500: '#D4AF37', // Primary Metallic Gold
+                            300: 'var(--gold-300)',
+                            400: 'var(--gold-400)',
+                            500: '#D4AF37', // Primary Metallic Gold — constant brand accent in both themes
                             600: '#C9A227',
                             700: '#A37F1C',
                             800: '#7B5E12',
                             900: '#4D3A0A',
                         },
                         dark: {
-                            900: '#0D0D0D', // Deep background
-                            800: '#141414', // Header & Panels
-                            700: '#1E1E1E', // Card background
-                            600: '#2A2A2A', // Borders & Hover
-                            500: '#383838'
+                            900: 'var(--dark-900)', // Page background
+                            800: 'var(--dark-800)', // Header & Panels
+                            700: 'var(--dark-700)', // Recessed/nested surfaces
+                            600: 'var(--dark-600)', // Borders & Hover
+                            500: 'var(--dark-500)'
+                        },
+                        slate: {
+                            100: 'var(--ink-100)',
+                            200: 'var(--ink-200)',
+                            300: 'var(--ink-300)',
+                            400: 'var(--ink-400)',
+                            500: 'var(--ink-500)',
+                            600: 'var(--ink-600)'
                         }
                     }
                 }
@@ -47,13 +75,57 @@
         }
     </script>
     <style>
+        /* LIGHT THEME (default) */
+        :root {
+            --dark-900: #F7F5F0;
+            --dark-800: #FFFFFF;
+            --dark-700: #F3F1EA;
+            --dark-600: #E4DFD1;
+            --dark-500: #D3CBB8;
+
+            --ink-100: #111827;
+            --ink-200: #1F2937;
+            --ink-300: #374151;
+            --ink-400: #6B7280;
+            --ink-500: #9CA3AF;
+            --ink-600: #D1D5DB;
+
+            --gold-300: #8A6A18;
+            --gold-400: #8A6418;
+
+            --gold-grad-text: linear-gradient(135deg, #C9A227 0%, #A37F1C 50%, #4D3A0A 100%);
+            --gold-border-color: rgba(154, 119, 28, 0.35);
+        }
+
+        /* DARK THEME */
+        :root[data-theme="dark"] {
+            --dark-900: #0D0D0D;
+            --dark-800: #141414;
+            --dark-700: #1E1E1E;
+            --dark-600: #2A2A2A;
+            --dark-500: #383838;
+
+            --ink-100: #F8FAFC;
+            --ink-200: #E2E8F0;
+            --ink-300: #CBD5E1;
+            --ink-400: #94A3B8;
+            --ink-500: #64748B;
+            --ink-600: #475569;
+
+            --gold-300: #E8D08D;
+            --gold-400: #DCA352;
+
+            --gold-grad-text: linear-gradient(135deg, #FFF0CA 0%, #D4AF37 50%, #9A771C 100%);
+            --gold-border-color: rgba(212, 175, 55, 0.25);
+        }
+
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #141414; }
-        ::-webkit-scrollbar-thumb { background: #383838; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: var(--dark-800); }
+        ::-webkit-scrollbar-thumb { background: var(--dark-500); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
 
         .gold-gradient-text {
-            background: linear-gradient(135deg, #FFF0CA 0%, #D4AF37 50%, #9A771C 100%);
+            background: var(--gold-grad-text);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -67,7 +139,7 @@
         }
 
         .gold-border {
-            border-color: rgba(212, 175, 55, 0.25);
+            border-color: var(--gold-border-color);
         }
 
         .gold-border-glow {
@@ -75,7 +147,7 @@
         }
     </style>
 </head>
-<body class="h-full font-sans text-slate-200 antialiased flex flex-col bg-[#0D0D0D] selection:bg-gold-500 selection:text-black">
+<body class="h-full font-sans text-slate-200 antialiased flex flex-col bg-dark-900 selection:bg-gold-500 selection:text-black">
 
     <!-- BRAND HEADER -->
     <header class="bg-dark-800 border-b gold-border sticky top-0 z-20 shadow-xl">
@@ -99,10 +171,8 @@
                     <span id="syncStatusDot" class="w-2 h-2 mr-1.5 rounded-full bg-slate-500"></span>
                     <span id="syncStatusText">Connecting...</span>
                 </span>
-                <button onclick="openPublishGuide()" class="px-3.5 py-2 bg-dark-700 hover:bg-dark-600 text-gold-400 hover:text-gold-300 text-xs font-semibold rounded-xl transition border gold-border flex items-center space-x-2 shadow-sm">
-                    <i class="fa-solid fa-globe text-gold-500"></i>
-                    <span class="hidden sm:inline">How to Put Live</span>
-                    <span class="sm:hidden">Go Live</span>
+                <button id="themeToggleBtn" onclick="toggleTheme()" title="Switch theme" class="p-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 border border-dark-600 text-gold-400 hover:text-gold-300 transition flex items-center justify-center w-10 h-10">
+                    <i id="themeToggleIcon" class="fa-solid fa-moon"></i>
                 </button>
             </div>
         </div>
@@ -138,7 +208,7 @@
                     <button type="button" onclick="loadSampleText(3)" class="text-gold-400 hover:text-gold-300 hover:underline">Wedding (Multi-Day)</button>
                 </div>
                 
-                <button onclick="processAndAddBooking()" class="px-6 py-3 gold-gradient-bg text-dark-900 font-bold text-xs sm:text-sm rounded-xl transition shadow-lg flex items-center space-x-2 ml-auto hover:scale-[1.01] active:scale-[0.99]">
+                <button onclick="processAndAddBooking()" class="px-6 py-3 gold-gradient-bg text-black font-bold text-xs sm:text-sm rounded-xl transition shadow-lg flex items-center space-x-2 ml-auto hover:scale-[1.01] active:scale-[0.99]">
                     <i class="fa-solid fa-calendar-plus text-xs"></i>
                     <span>Add to Calendar</span>
                 </button>
@@ -212,74 +282,6 @@
         </div>
     </div>
 
-    <!-- PUBLISH GUIDE MODAL -->
-    <div id="publishGuideModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-dark-800 rounded-2xl max-w-lg w-full shadow-2xl border gold-border overflow-hidden">
-            <div class="px-6 py-4 bg-dark-900 border-b border-dark-600 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-globe text-gold-500"></i>
-                    <h3 class="font-serif font-bold text-base text-gold-400">How to Put Live for Resort Team</h3>
-                </div>
-                <button onclick="closePublishGuide()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <div class="p-6 space-y-4 text-xs text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto">
-                <p>Bookings now sync live through a shared cloud database (Firebase), so every visitor to the link sees the same calendar. Do Step 1 once, then host the file with Step 2 or 3.</p>
-
-                <div class="bg-dark-900 p-4 rounded-xl border border-gold-500/40 space-y-2">
-                    <p class="font-bold text-gold-400 text-sm flex items-center space-x-2">
-                        <span>1. One-Time: Connect the Shared Database (Firebase)</span>
-                    </p>
-                    <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
-                        <li>Go to <strong class="text-slate-200">console.firebase.google.com</strong> and create a free project.</li>
-                        <li>In the project, open <strong class="text-slate-200">Build → Firestore Database → Create database</strong>, start in test mode, pick a region.</li>
-                        <li>Open <strong class="text-slate-200">Project Settings (gear icon) → General</strong>, scroll to "Your apps", click the Web <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">&lt;/&gt;</code> icon, and register an app.</li>
-                        <li>Copy the <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">firebaseConfig</code> object it shows you, and paste it into this file's <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">index.html</code> near the top of the last <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">&lt;script type="module"&gt;</code> block, replacing the <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">YOUR_...</code> placeholders.</li>
-                        <li>In <strong class="text-slate-200">Firestore Database → Rules</strong>, paste:
-                            <pre class="bg-dark-800 text-gold-300 px-2.5 py-2 rounded border border-dark-600 mt-1.5 overflow-x-auto text-[10px] leading-snug">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
-    }
-  }
-}</pre>
-                            then click Publish.
-                        </li>
-                    </ol>
-                    <p class="text-amber-400/90 text-[11px] pt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>These rules make bookings readable and writable by anyone who has the link (no login) — that's what makes it "viewable by everyone," but it also means anyone with the link can edit or delete entries. Good for an internal team link; tighten the rules later if you need staff logins.</p>
-                </div>
-
-                <div class="bg-dark-900 p-4 rounded-xl border border-dark-600 space-y-2">
-                    <p class="font-bold text-gold-400 text-sm flex items-center space-x-2">
-                        <span>2. Netlify Drop (Fastest)</span>
-                    </p>
-                    <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
-                        <li>Visit <strong class="text-slate-200">app.netlify.com/drop</strong></li>
-                        <li>Drag and drop the folder containing this <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">index.html</code> file.</li>
-                        <li>You will instantly get a custom live web link to share with your staff!</li>
-                    </ol>
-                </div>
-
-                <div class="bg-dark-900 p-4 rounded-xl border border-dark-600 space-y-2">
-                    <p class="font-bold text-gold-400 text-sm flex items-center space-x-2">
-                        <span>3. GitHub Pages (Free Forever)</span>
-                    </p>
-                    <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
-                        <li>Create a free account on <strong class="text-slate-200">GitHub.com</strong>.</li>
-                        <li>Create a new repository (e.g. <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">casanova-calendar</code>).</li>
-                        <li>Upload this file as <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">index.html</code>.</li>
-                        <li>Go to <strong class="text-slate-200">Settings → Pages</strong>, select main branch, and click Save.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div class="px-6 py-4 bg-dark-900 border-t border-dark-600 flex justify-end">
-                <button onclick="closePublishGuide()" class="px-5 py-2 gold-gradient-bg text-dark-900 font-bold text-xs rounded-xl shadow-md transition">Got it!</button>
-            </div>
-        </div>
-    </div>
-
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 bg-dark-800 text-slate-100 text-xs font-semibold rounded-xl shadow-2xl border gold-border flex items-center space-x-2">
         <i id="toastIcon" class="fa-solid fa-circle-check text-gold-400 text-sm"></i>
@@ -291,13 +293,13 @@ service cloud.firestore {
         // Firebase is loaded dynamically (not as a static top-level import) so that a
         // blocked/flaky CDN only disables cloud sync instead of crashing the whole page —
         // a static import that fails to resolve aborts the entire module.
-        let initializeApp, getFirestore, collection, doc, addDoc, deleteDoc,
+        let initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc,
             onSnapshot, query, orderBy, serverTimestamp;
 
         // ============================================================
         // ONE-TIME SETUP: paste your Firebase project config below.
         // Firebase Console -> Project Settings -> General -> Your apps -> Web app
-        // See the "How to Put Live" guide in the app header for full steps.
+        // One-time setup: paste your Firebase project config below (see index.html comments & repo README).
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyC0Sqh36422HoeqiLn9Ox342Z1X_6tJJWU",
@@ -321,7 +323,10 @@ service cloud.firestore {
             sep:8, sept:8, september:8, oct:9, october:9, nov:10, november:10, dec:11, december:11
         };
 
-        const BADGE_STYLES = [
+        // Two variants because these use Tailwind's raw amber/emerald/purple/rose/cyan palette
+        // (outside the gold/dark/slate tokens that re-theme automatically via CSS variables) —
+        // the translucent dark-theme tints would be unreadably faint against a light page.
+        const BADGE_STYLES_DARK = [
             'bg-gold-500/15 text-gold-300 border-gold-500/40',
             'bg-amber-500/15 text-amber-300 border-amber-500/40',
             'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
@@ -329,11 +334,42 @@ service cloud.firestore {
             'bg-rose-500/15 text-rose-300 border-rose-500/40',
             'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
         ];
+        const BADGE_STYLES_LIGHT = [
+            'bg-gold-100 text-gold-800 border-gold-300',
+            'bg-amber-100 text-amber-800 border-amber-300',
+            'bg-emerald-100 text-emerald-800 border-emerald-300',
+            'bg-purple-100 text-purple-800 border-purple-300',
+            'bg-rose-100 text-rose-800 border-rose-300',
+            'bg-cyan-100 text-cyan-800 border-cyan-300'
+        ];
+        function getBadgeStyles() {
+            return document.documentElement.getAttribute('data-theme') === 'dark' ? BADGE_STYLES_DARK : BADGE_STYLES_LIGHT;
+        }
 
         window.onload = function() {
+            syncThemeToggleIcon();
             initCloudSync();
             renderCalendar();
         };
+
+        // THEME (light default; persisted per-browser via localStorage — a display
+        // preference, not booking data, so this is unrelated to the Firestore sync above)
+        function syncThemeToggleIcon() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const icon = document.getElementById('themeToggleIcon');
+            if (icon) icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const next = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try {
+                localStorage.setItem('casanova_theme', next);
+            } catch (e) { /* localStorage unavailable — theme just won't persist across visits */ }
+            syncThemeToggleIcon();
+            renderCalendar(); // booking pill colors depend on theme (see getBadgeStyles)
+        }
 
         // CLOUD SYNC (Firestore) — every visitor reads/writes the same shared collection
         function setSyncStatus(state) {
@@ -356,7 +392,7 @@ service cloud.firestore {
         async function initCloudSync() {
             if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'YOUR_API_KEY') {
                 setSyncStatus('unconfigured');
-                showToast('Shared database not set up yet — open "How to Put Live" for setup steps.', true);
+                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
                 return;
             }
 
@@ -364,7 +400,7 @@ service cloud.firestore {
                 const appMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
                 const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
                 ({ initializeApp } = appMod);
-                ({ getFirestore, collection, doc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } = fsMod);
+                ({ getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, serverTimestamp } = fsMod);
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
@@ -480,7 +516,7 @@ service cloud.firestore {
             }
 
             if (!db) {
-                showToast('Shared database not set up yet — open "How to Put Live" for setup steps.', true);
+                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
                 return;
             }
 
@@ -544,17 +580,18 @@ service cloud.firestore {
                 // Date Number Header
                 const header = document.createElement('div');
                 header.className = 'flex justify-between items-center mb-1';
-                header.innerHTML = `<span class="text-xs font-bold ${isToday ? 'bg-gold-500 text-dark-900 w-5 h-5 rounded-full flex items-center justify-center' : 'text-slate-300 group-hover:text-gold-400'}">${day}</span>`;
+                header.innerHTML = `<span class="text-xs font-bold ${isToday ? 'bg-gold-500 text-black w-5 h-5 rounded-full flex items-center justify-center' : 'text-slate-300 group-hover:text-gold-400'}">${day}</span>`;
                 cell.appendChild(header);
 
                 // Bookings Container inside cell
                 const container = document.createElement('div');
                 container.className = 'space-y-1 flex-1 overflow-y-auto max-h-[75px] scrollbar-none';
 
+                const badgeStyles = getBadgeStyles();
                 bookings.forEach((b, idx) => {
                     if (dateStr >= b.startDate && dateStr <= b.endDate) {
                         const pill = document.createElement('div');
-                        const styleClass = BADGE_STYLES[idx % BADGE_STYLES.length];
+                        const styleClass = badgeStyles[idx % badgeStyles.length];
                         const firstLine = b.rawText.split('\n')[0];
 
                         pill.className = `px-1.5 py-1 rounded text-[10px] font-medium truncate border shadow-sm ${styleClass}`;
@@ -569,15 +606,23 @@ service cloud.firestore {
         }
 
         // DAY DETAILS MODAL
-        function openDayModal(dateStr) {
-            const modalTitle = document.getElementById('dayModalTitle');
-            const list = document.getElementById('dayBookingsList');
-            const d = new Date(dateStr + 'T00:00:00');
+        let currentModalDate = null;
+        let editingBookingId = null;
 
-            modalTitle.innerText = `Bookings for ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+        function openDayModal(dateStr) {
+            currentModalDate = dateStr;
+            editingBookingId = null;
+            const d = new Date(dateStr + 'T00:00:00');
+            document.getElementById('dayModalTitle').innerText = `Bookings for ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+            renderDayModalList();
+            document.getElementById('dayModal').classList.remove('hidden');
+        }
+
+        function renderDayModalList() {
+            const list = document.getElementById('dayBookingsList');
             list.innerHTML = '';
 
-            const activeBookings = bookings.filter(b => dateStr >= b.startDate && dateStr <= b.endDate);
+            const activeBookings = bookings.filter(b => currentModalDate >= b.startDate && currentModalDate <= b.endDate);
 
             if (activeBookings.length === 0) {
                 list.innerHTML = `
@@ -586,39 +631,105 @@ service cloud.firestore {
                         <p class="font-medium">No bookings recorded for this date.</p>
                     </div>
                 `;
-            } else {
-                activeBookings.forEach(b => {
-                    const card = document.createElement('div');
-                    card.className = 'p-4 bg-dark-900 border border-dark-600 rounded-xl space-y-3 relative hover:border-gold-500/50 transition';
+                return;
+            }
 
-                    const dateBadge = b.startDate === b.endDate 
-                        ? b.startDate 
-                        : `${b.startDate} to ${b.endDate}`;
+            activeBookings.forEach(b => {
+                const card = document.createElement('div');
+                card.className = 'p-4 bg-dark-900 border border-dark-600 rounded-xl space-y-3 relative hover:border-gold-500/50 transition';
 
+                const dateBadge = b.startDate === b.endDate
+                    ? b.startDate
+                    : `${b.startDate} to ${b.endDate}`;
+
+                if (editingBookingId === b.id) {
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-dark-600 pb-2">
+                            <span class="text-gold-400"><i class="fa-solid fa-pen mr-1.5"></i>Editing Booking</span>
+                        </div>
+                        <textarea id="editTextarea_${b.id}" rows="4" class="w-full p-3 bg-dark-800 border border-gold-500/50 focus:border-gold-500 rounded-lg text-xs sm:text-sm font-mono text-slate-200 leading-relaxed outline-none transition">${escapeHtml(b.rawText)}</textarea>
+                        <div class="flex items-center justify-end space-x-2">
+                            <button onclick="cancelEditBooking()" class="px-3 py-1.5 bg-dark-700 hover:bg-dark-600 text-slate-300 text-xs font-semibold rounded-lg transition border border-dark-600">Cancel</button>
+                            <button onclick="saveEditedBooking('${b.id}')" class="px-3 py-1.5 gold-gradient-bg text-black text-xs font-bold rounded-lg transition">Save Changes</button>
+                        </div>
+                    `;
+                } else {
                     card.innerHTML = `
                         <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-dark-600 pb-2">
                             <span class="text-gold-400"><i class="fa-solid fa-calendar-day mr-1.5"></i>${dateBadge}</span>
-                            <button onclick="deleteBooking('${b.id}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2 py-1 rounded transition text-xs font-bold flex items-center space-x-1">
-                                <i class="fa-solid fa-trash-can"></i>
-                                <span>Delete</span>
-                            </button>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="startEditBooking('${b.id}')" class="text-gold-400 hover:text-gold-300 hover:bg-gold-500/10 px-2 py-1 rounded transition text-xs font-bold flex items-center space-x-1">
+                                    <i class="fa-solid fa-pen"></i>
+                                    <span>Edit</span>
+                                </button>
+                                <button onclick="deleteBooking('${b.id}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2 py-1 rounded transition text-xs font-bold flex items-center space-x-1">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                    <span>Delete</span>
+                                </button>
+                            </div>
                         </div>
                         <pre class="text-xs sm:text-sm font-mono text-slate-200 whitespace-pre-wrap leading-relaxed bg-dark-800 p-3.5 rounded-lg border border-dark-600/80">${escapeHtml(b.rawText)}</pre>
                     `;
-                    list.appendChild(card);
-                });
-            }
-
-            document.getElementById('dayModal').classList.remove('hidden');
+                }
+                list.appendChild(card);
+            });
         }
 
         function closeDayModal() {
+            editingBookingId = null;
             document.getElementById('dayModal').classList.add('hidden');
+        }
+
+        function startEditBooking(id) {
+            editingBookingId = id;
+            renderDayModalList();
+        }
+
+        function cancelEditBooking() {
+            editingBookingId = null;
+            renderDayModalList();
+        }
+
+        async function saveEditedBooking(id) {
+            if (!db) {
+                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
+                return;
+            }
+            const textarea = document.getElementById(`editTextarea_${id}`);
+            const rawText = textarea.value.trim();
+            if (!rawText) {
+                showToast('Booking details cannot be empty.', true);
+                return;
+            }
+
+            const parsed = parseDatesFromText(rawText);
+
+            try {
+                await updateDoc(doc(db, 'bookings', id), {
+                    startDate: parsed.startDate,
+                    endDate: parsed.endDate,
+                    rawText: rawText,
+                    updatedAt: serverTimestamp()
+                });
+                editingBookingId = null;
+                showToast('Booking updated for everyone.');
+                closeDayModal();
+            } catch (err) {
+                console.error('Update booking failed:', err);
+                showToast('Could not update booking: ' + err.message, true);
+            }
         }
 
         async function deleteBooking(id) {
             if (!db) {
-                showToast('Shared database not set up yet — open "How to Put Live" for setup steps.', true);
+                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
+                return;
+            }
+            const confirmation = prompt('This will permanently delete this booking for everyone. Type 12345 to confirm.');
+            if (confirmation !== '12345') {
+                if (confirmation !== null) {
+                    showToast('Deletion cancelled — confirmation code did not match.', true);
+                }
                 return;
             }
             try {
@@ -699,6 +810,10 @@ service cloud.firestore {
         window.changeMonth = changeMonth;
         window.goToToday = goToToday;
         window.closeDayModal = closeDayModal;
+        window.startEditBooking = startEditBooking;
+        window.cancelEditBooking = cancelEditBooking;
+        window.saveEditedBooking = saveEditedBooking;
+        window.toggleTheme = toggleTheme;
     </script>
 </body>
 </html>
