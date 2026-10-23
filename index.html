@@ -1154,6 +1154,22 @@
             return candidate < todayLocalMidnight ? now.getFullYear() + 1 : now.getFullYear();
         }
 
+        // The regexes below only check "1 or 2 digits" for the day — they don't know
+        // October has 31 days, so "October 32" or "February 30" would otherwise sail
+        // through as a literal (invalid) date string. JS's Date constructor silently
+        // rolls invalid day/month combinations over into the next one instead of
+        // rejecting them, so the only reliable check is to build the date and confirm
+        // it reports back the exact year/month/day we asked for.
+        function isValidCalendarDate(year, month, day) {
+            const d = new Date(year, month, day);
+            return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+        }
+
+        function invalidDateMessage(year, month, day) {
+            const monthName = MONTH_NAMES[month] || 'that month';
+            return `${monthName} ${day}, ${year} isn't a real date — please check the day.`;
+        }
+
         // SMART NATURAL DATE PARSER
         function parseDatesFromText(text) {
             // Pattern 1: Range "Oct 31 to Nov 2" or "October 31 - November 2 2026"
@@ -1170,6 +1186,13 @@
                 // No explicit end year: same year as the start, unless the range wraps
                 // into the next year (e.g. "Dec 30 to Jan 2").
                 const y2 = rangeMatch[6] ? parseInt(rangeMatch[6]) : (m2 < m1 ? y1 + 1 : y1);
+
+                if (!isValidCalendarDate(y1, m1, d1)) {
+                    return invalidResult(invalidDateMessage(y1, m1, d1));
+                }
+                if (!isValidCalendarDate(y2, m2, d2)) {
+                    return invalidResult(invalidDateMessage(y2, m2, d2));
+                }
 
                 return {
                     startDate: formatDateString(y1, m1, d1),
@@ -1188,6 +1211,13 @@
                 const d2 = parseInt(sameMonthMatch[3]);
                 const y = sameMonthMatch[4] ? parseInt(sameMonthMatch[4]) : resolveUpcomingYear(m, d1);
 
+                if (!isValidCalendarDate(y, m, d1)) {
+                    return invalidResult(invalidDateMessage(y, m, d1));
+                }
+                if (!isValidCalendarDate(y, m, d2)) {
+                    return invalidResult(invalidDateMessage(y, m, d2));
+                }
+
                 return {
                     startDate: formatDateString(y, m, d1),
                     endDate: formatDateString(y, m, d2),
@@ -1204,6 +1234,10 @@
                 let dayNum = parseInt(monthDayMatch[2] || monthDayMatch[3]);
                 let monthNum = MONTH_MAP[mName.toLowerCase()];
                 let yearNum = monthDayMatch[5] ? parseInt(monthDayMatch[5]) : resolveUpcomingYear(monthNum, dayNum);
+
+                if (!isValidCalendarDate(yearNum, monthNum, dayNum)) {
+                    return invalidResult(invalidDateMessage(yearNum, monthNum, dayNum));
+                }
 
                 const formatted = formatDateString(yearNum, monthNum, dayNum);
                 return { startDate: formatted, endDate: formatted, dateFound: true };
@@ -1223,14 +1257,22 @@
                 else if (p3 > 1000) { y = p3; m = p1 - 1; d = p2; }
                 else { m = p1 - 1; d = p2; y = resolveUpcomingYear(m, d); }
 
+                if (!isValidCalendarDate(y, m, d)) {
+                    return invalidResult(invalidDateMessage(y, m, d));
+                }
+
                 const formatted = formatDateString(y, m, d);
                 return { startDate: formatted, endDate: formatted, dateFound: true };
             }
 
             // Fallback: no recognizable date in the text — caller should warn rather than
             // silently save a booking plotted on today's date.
+            return invalidResult(null);
+        }
+
+        function invalidResult(reason) {
             const todayStr = new Date().toISOString().split('T')[0];
-            return { startDate: todayStr, endDate: todayStr, dateFound: false };
+            return { startDate: todayStr, endDate: todayStr, dateFound: false, invalidReason: reason };
         }
 
         function formatDateString(y, m, d) {
@@ -1276,7 +1318,7 @@
 
             const parsed = parseDatesFromText(rawText);
             if (!parsed.dateFound) {
-                showToast('Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
+                showToast(parsed.invalidReason || 'Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
                 return;
             }
 
@@ -1476,7 +1518,7 @@
 
             const parsed = parseDatesFromText(rawText);
             if (!parsed.dateFound) {
-                showToast('Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
+                showToast(parsed.invalidReason || 'Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
                 return;
             }
 
