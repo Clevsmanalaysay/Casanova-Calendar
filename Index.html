@@ -1,602 +1,240 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0D0D0D]">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Casanova Garden Resort & Events Place - Booking Calendar</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Great Vibes (for script logo), Playfair Display (Serif), Plus Jakarta Sans (Body) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { 
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
-                        script: ['Great Vibes', 'cursive']
-                    },
-                    colors: {
-                        gold: {
-                            100: '#FBF5E5',
-                            200: '#F4E6BD',
-                            300: '#E8D08D',
-                            400: '#DCA352',
-                            500: '#D4AF37', // Primary Metallic Gold
-                            600: '#C9A227',
-                            700: '#A37F1C',
-                            800: '#7B5E12',
-                            900: '#4D3A0A',
-                        },
-                        dark: {
-                            900: '#0D0D0D', // Deep background
-                            800: '#141414', // Header & Panels
-                            700: '#1E1E1E', // Card background
-                            600: '#2A2A2A', // Borders & Hover
-                            500: '#383838'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #141414; }
-        ::-webkit-scrollbar-thumb { background: #383838; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
-
-        .gold-gradient-text {
-            background: linear-gradient(135deg, #FFF0CA 0%, #D4AF37 50%, #9A771C 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .gold-gradient-bg {
-            background: linear-gradient(135deg, #E5C158 0%, #C9A227 50%, #A37F1C 100%);
-        }
-
-        .gold-gradient-bg:hover {
-            background: linear-gradient(135deg, #F0CE68 0%, #D4AF37 50%, #B58E22 100%);
-        }
-
-        .gold-border {
-            border-color: rgba(212, 175, 55, 0.25);
-        }
-
-        .gold-border-glow {
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.08);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Casanova Garden Resort & Events Place - Booking Sync</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+casanova: {
+gold: '#D4AF37',
+goldLight: '#F3E5AB',
+goldDark: '#AA820A',
+dark: '#0D0D0D',
+card: '#161616',
+border: '#2A2A2A',
+accent: '#1E1E1E'
+}
+},
+fontFamily: {
+serif: ['Cinzel', 'serif'],
+sans: ['Montserrat', 'sans-serif']
+}
+}
+}
+}
+</script>
+<style>
+body { background-color: #0D0D0D; color: #E5E5E5; font-family: 'Montserrat', sans-serif; }
+.gold-gradient-text { background: linear-gradient(135deg, #FFF0B2 0%, #D4AF37 50%, #997A15 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.gold-border { border-color: rgba(212, 175, 55, 0.3); }
+.gold-button { background: linear-gradient(135deg, #D4AF37 0%, #B38F24 100%); color: #0D0D0D; font-weight: 600; }
+.gold-button:hover { background: linear-gradient(135deg, #E5C148 0%, #C4A035 100%); }
+</style>
 </head>
-<body class="h-full font-sans text-slate-200 antialiased flex flex-col bg-[#0D0D0D] selection:bg-gold-500 selection:text-black">
-
-    <!-- BRAND HEADER -->
-    <header class="bg-dark-800 border-b gold-border sticky top-0 z-20 shadow-xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-            
-            <!-- CASANOVA BRANDING LOGO -->
-            <div class="flex items-center space-x-3 py-2">
-                <div class="flex flex-col">
-                    <span class="font-script text-3xl sm:text-4xl text-gold-500 leading-none tracking-wide hover:opacity-95 transition">
-                        Casanova
-                    </span>
-                    <span class="text-[9px] sm:text-[10px] font-semibold text-gold-300/80 uppercase tracking-[0.22em] -mt-1">
-                        GARDEN RESORT & EVENTS PLACE
-                    </span>
-                </div>
-            </div>
-
-            <!-- ACTIONS -->
-            <div class="flex items-center space-x-3">
-                <button onclick="openPublishGuide()" class="px-3.5 py-2 bg-dark-700 hover:bg-dark-600 text-gold-400 hover:text-gold-300 text-xs font-semibold rounded-xl transition border gold-border flex items-center space-x-2 shadow-sm">
-                    <i class="fa-solid fa-globe text-gold-500"></i>
-                    <span class="hidden sm:inline">How to Put Live</span>
-                    <span class="sm:hidden">Go Live</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- MAIN APP CONTENT -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-
-        <!-- PASTE BOOKING SECTION -->
-        <div class="bg-dark-800 p-5 sm:p-6 rounded-2xl border gold-border gold-border-glow space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <label for="rawTextInput" class="text-sm font-semibold text-slate-100 flex items-center space-x-2">
-                    <i class="fa-solid fa-paste text-gold-500"></i>
-                    <span class="font-serif text-base sm:text-lg tracking-wide gold-gradient-text">Paste Booking Details</span>
-                </label>
-                <span class="text-xs text-slate-400 font-normal">
-                    <i class="fa-solid fa-wand-magic-sparkles text-gold-500/80 mr-1"></i>
-                    Automatically plots dates & syncs calendar
-                </span>
-            </div>
-
-            <div class="relative">
-                <textarea id="rawTextInput" rows="4" placeholder="Paste booking message directly here...&#10;e.g.&#10;Jane de leon&#10;October 31 2026&#10;Day tour 8am to 5pm&#10;7th birthday celebration&#10;100pax" class="w-full p-4 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-xl text-xs sm:text-sm font-mono text-slate-200 placeholder-slate-500 leading-relaxed outline-none transition focus:ring-1 focus:ring-gold-500/30"></textarea>
-            </div>
-
-            <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-                <div class="flex items-center space-x-2 text-xs text-slate-400">
-                    <span class="font-medium text-slate-500">Try Sample:</span>
-                    <button type="button" onclick="loadSampleText(1)" class="text-gold-400 hover:text-gold-300 hover:underline">Day Tour</button>
-                    <span>•</span>
-                    <button type="button" onclick="loadSampleText(2)" class="text-gold-400 hover:text-gold-300 hover:underline">Night Swim</button>
-                    <span>•</span>
-                    <button type="button" onclick="loadSampleText(3)" class="text-gold-400 hover:text-gold-300 hover:underline">Wedding (Multi-Day)</button>
-                </div>
-                
-                <button onclick="processAndAddBooking()" class="px-6 py-3 gold-gradient-bg text-dark-900 font-bold text-xs sm:text-sm rounded-xl transition shadow-lg flex items-center space-x-2 ml-auto hover:scale-[1.01] active:scale-[0.99]">
-                    <i class="fa-solid fa-calendar-plus text-xs"></i>
-                    <span>Add to Calendar</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- CALENDAR CONTROLS & MONTH HEADER -->
-        <div class="bg-dark-800 p-4 rounded-2xl border gold-border flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center space-x-3">
-                <button onclick="changeMonth(-1)" class="p-2.5 hover:bg-dark-700 rounded-xl text-slate-300 hover:text-gold-400 transition border border-transparent hover:border-dark-600" title="Previous Month">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <h2 id="currentMonthYear" class="text-lg sm:text-xl font-serif font-bold gold-gradient-text min-w-[180px] text-center tracking-wide">
-                    October 2026
-                </h2>
-                <button onclick="changeMonth(1)" class="p-2.5 hover:bg-dark-700 rounded-xl text-slate-300 hover:text-gold-400 transition border border-transparent hover:border-dark-600" title="Next Month">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-                <button onclick="goToToday()" class="ml-2 px-3.5 py-1.5 bg-dark-700 hover:bg-dark-600 text-gold-400 text-xs font-semibold rounded-lg transition border gold-border">
-                    Today
-                </button>
-            </div>
-
-            <div class="text-xs text-slate-400 font-medium flex items-center space-x-2">
-                <i class="fa-solid fa-circle-info text-gold-500"></i>
-                <span>Click any day to inspect full raw booking details</span>
-            </div>
-        </div>
-
-        <!-- MONTHLY CALENDAR GRID -->
-        <div class="bg-dark-800 rounded-2xl border gold-border shadow-2xl overflow-hidden">
-            <!-- Day Name Headers -->
-            <div class="grid grid-cols-7 border-b border-dark-600 bg-dark-900/80 text-center text-xs font-bold text-gold-400/90 uppercase tracking-widest py-3">
-                <div>Sun</div>
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-            </div>
-
-            <!-- Calendar Days -->
-            <div id="calendarGrid" class="grid grid-cols-7 divide-x divide-y divide-dark-600/60 bg-dark-600/40 min-h-[580px]">
-                <!-- Dynamically Populated -->
-            </div>
-        </div>
-    </main>
-
-    <!-- DAY DETAILS MODAL -->
-    <div id="dayModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-dark-800 rounded-2xl max-w-lg w-full shadow-2xl border gold-border overflow-hidden flex flex-col max-h-[85vh]">
-            <!-- Header -->
-            <div class="px-6 py-4 bg-dark-900 border-b border-dark-600 flex items-center justify-between">
-                <div>
-                    <h3 id="dayModalTitle" class="font-serif font-bold text-lg text-gold-400">Bookings for Date</h3>
-                    <p class="text-xs text-slate-400">Exact raw pasted details for staff view</p>
-                </div>
-                <button onclick="closeDayModal()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <!-- List -->
-            <div id="dayBookingsList" class="p-6 overflow-y-auto space-y-4 flex-1">
-                <!-- Dynamically Populated -->
-            </div>
-
-            <!-- Footer -->
-            <div class="px-6 py-4 bg-dark-900 border-t border-dark-600 flex justify-end">
-                <button onclick="closeDayModal()" class="px-5 py-2 bg-dark-700 hover:bg-dark-600 text-slate-200 font-semibold text-xs rounded-xl transition border border-dark-600">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PUBLISH GUIDE MODAL -->
-    <div id="publishGuideModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-dark-800 rounded-2xl max-w-lg w-full shadow-2xl border gold-border overflow-hidden">
-            <div class="px-6 py-4 bg-dark-900 border-b border-dark-600 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-globe text-gold-500"></i>
-                    <h3 class="font-serif font-bold text-base text-gold-400">How to Put Live for Resort Team</h3>
-                </div>
-                <button onclick="closePublishGuide()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <div class="p-6 space-y-4 text-xs text-slate-300 leading-relaxed">
-                <p>To give your resort team immediate access to this calendar on their phones or tablets, host this single file online in under 2 minutes for free:</p>
-
-                <div class="bg-dark-900 p-4 rounded-xl border border-dark-600 space-y-2">
-                    <p class="font-bold text-gold-400 text-sm flex items-center space-x-2">
-                        <span>1. Netlify Drop (Fastest)</span>
-                    </p>
-                    <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
-                        <li>Visit <strong class="text-slate-200">app.netlify.com/drop</strong></li>
-                        <li>Drag and drop the folder containing this <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">index.html</code> file.</li>
-                        <li>You will instantly get a custom live web link to share with your staff!</li>
-                    </ol>
-                </div>
-
-                <div class="bg-dark-900 p-4 rounded-xl border border-dark-600 space-y-2">
-                    <p class="font-bold text-gold-400 text-sm flex items-center space-x-2">
-                        <span>2. GitHub Pages (Free Forever)</span>
-                    </p>
-                    <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
-                        <li>Create a free account on <strong class="text-slate-200">GitHub.com</strong>.</li>
-                        <li>Create a new repository (e.g. <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">casanova-calendar</code>).</li>
-                        <li>Upload this file as <code class="bg-dark-800 text-gold-400 px-1.5 py-0.5 rounded border border-dark-600">index.html</code>.</li>
-                        <li>Go to <strong class="text-slate-200">Settings → Pages</strong>, select main branch, and click Save.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div class="px-6 py-4 bg-dark-900 border-t border-dark-600 flex justify-end">
-                <button onclick="closePublishGuide()" class="px-5 py-2 gold-gradient-bg text-dark-900 font-bold text-xs rounded-xl shadow-md transition">Got it!</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 bg-dark-800 text-slate-100 text-xs font-semibold rounded-xl shadow-2xl border gold-border flex items-center space-x-2">
-        <i id="toastIcon" class="fa-solid fa-circle-check text-gold-400 text-sm"></i>
-        <span id="toastMsg">Action completed!</span>
-    </div>
-
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // APP STATE
-        let bookings = [];
-        let currentMonth = new Date().getMonth();
-        let currentYear = new Date().getFullYear();
-
-        const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const MONTH_MAP = {
-            jan:0, january:0, feb:1, february:1, mar:2, march:2, apr:3, april:3,
-            may:4, jun:5, june:5, jul:6, july:6, aug:7, august:7,
-            sep:8, sept:8, september:8, oct:9, october:9, nov:10, november:10, dec:11, december:11
-        };
-
-        const BADGE_STYLES = [
-            'bg-gold-500/15 text-gold-300 border-gold-500/40',
-            'bg-amber-500/15 text-amber-300 border-amber-500/40',
-            'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
-            'bg-purple-500/15 text-purple-300 border-purple-500/40',
-            'bg-rose-500/15 text-rose-300 border-rose-500/40',
-            'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
-        ];
-
-        window.onload = function() {
-            loadBookings();
-            renderCalendar();
-        };
-
-        // STORAGE MANAGEMENT
-        function loadBookings() {
-            const saved = localStorage.getItem('casanova_resort_bookings');
-            if (saved) {
-                bookings = JSON.parse(saved);
-            } else {
-                // Pre-populate realistic initial Casanova Resort sample data
-                const sample1 = "Jane de leon\nOctober 31 2026\nDay tour 8am to 5pm\n7th birthday celebration\n100pax";
-                const sample2 = "Reyes Family\nNov 1 to Nov 3 2026\nOvernight Garden & Pool Stay\nFull Setup + Catering\n₱25,000 Deposit Paid";
-                
-                const d1 = parseDatesFromText(sample1);
-                const d2 = parseDatesFromText(sample2);
-
-                bookings = [
-                    { id: 'b_1', startDate: d1.startDate, endDate: d1.endDate, rawText: sample1 },
-                    { id: 'b_2', startDate: d2.startDate, endDate: d2.endDate, rawText: sample2 }
-                ];
-                saveBookings();
-            }
-        }
-
-        function saveBookings() {
-            localStorage.setItem('casanova_resort_bookings', JSON.stringify(bookings));
-        }
-
-        // SMART NATURAL DATE PARSER
-        function parseDatesFromText(text) {
-            const currentYearDefault = 2026;
-
-            // Pattern 1: Range "Oct 31 to Nov 2" or "October 31 - November 2 2026"
-            const rangePattern = /(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)\s+(\d{1,2})(?:\s*,?\s*(\d{4}))?\s*(?:to|-|until)\s*(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September)?\s*(\d{1,2})(?:\s*,?\s*(\d{4}))?/i;
-            const rangeMatch = text.match(rangePattern);
-
-            if (rangeMatch) {
-                const m1 = MONTH_MAP[rangeMatch[1].toLowerCase()];
-                const d1 = parseInt(rangeMatch[2]);
-                const y1 = rangeMatch[3] ? parseInt(rangeMatch[3]) : currentYearDefault;
-
-                const m2 = rangeMatch[4] ? MONTH_MAP[rangeMatch[4].toLowerCase()] : m1;
-                const d2 = parseInt(rangeMatch[5]);
-                const y2 = rangeMatch[6] ? parseInt(rangeMatch[6]) : y1;
-
-                return {
-                    startDate: formatDateString(y1, m1, d1),
-                    endDate: formatDateString(y2, m2, d2)
-                };
-            }
-
-            // Pattern 2: Same Month Range "Nov 1-3 2026", "Oct 10-12"
-            const sameMonthRangePattern = /(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)\s+(\d{1,2})\s*-\s*(\d{1,2})(?:\s*,?\s*(\d{4}))?/i;
-            const sameMonthMatch = text.match(sameMonthRangePattern);
-
-            if (sameMonthMatch) {
-                const m = MONTH_MAP[sameMonthMatch[1].toLowerCase()];
-                const d1 = parseInt(sameMonthMatch[2]);
-                const d2 = parseInt(sameMonthMatch[3]);
-                const y = sameMonthMatch[4] ? parseInt(sameMonthMatch[4]) : currentYearDefault;
-
-                return {
-                    startDate: formatDateString(y, m, d1),
-                    endDate: formatDateString(y, m, d2)
-                };
-            }
-
-            // Pattern 3: Single Month Day Year "October 31 2026", "Oct 31, 2026", "31 Oct 2026"
-            const monthDayPattern = /(?:(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)\s+(\d{1,2})|(\d{1,2})\s+(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September))\s*,?\s*(\d{4})?/i;
-            const monthDayMatch = text.match(monthDayPattern);
-
-            if (monthDayMatch) {
-                let mName = monthDayMatch[1] || monthDayMatch[4];
-                let dayNum = parseInt(monthDayMatch[2] || monthDayMatch[3]);
-                let yearNum = monthDayMatch[5] ? parseInt(monthDayMatch[5]) : currentYearDefault;
-                let monthNum = MONTH_MAP[mName.toLowerCase()];
-
-                const formatted = formatDateString(yearNum, monthNum, dayNum);
-                return { startDate: formatted, endDate: formatted };
-            }
-
-            // Pattern 4: Numeric Dates "10/31/2026", "2026-10-31"
-            const numericPattern = /(\d{1,4})[\/\-](\d{1,2})[\/\-](\d{1,4})/;
-            const numMatch = text.match(numericPattern);
-
-            if (numMatch) {
-                let p1 = parseInt(numMatch[1]);
-                let p2 = parseInt(numMatch[2]);
-                let p3 = parseInt(numMatch[3]);
-
-                let y, m, d;
-                if (p1 > 1000) { y = p1; m = p2 - 1; d = p3; }
-                else if (p3 > 1000) { y = p3; m = p1 - 1; d = p2; }
-                else { y = currentYearDefault; m = p1 - 1; d = p2; }
-
-                const formatted = formatDateString(y, m, d);
-                return { startDate: formatted, endDate: formatted };
-            }
-
-            // Fallback: Default to current date if format not matched
-            const todayStr = new Date().toISOString().split('T')[0];
-            return { startDate: todayStr, endDate: todayStr };
-        }
-
-        function formatDateString(y, m, d) {
-            const mm = String(m + 1).padStart(2, '0');
-            const dd = String(d).padStart(2, '0');
-            return `${y}-${mm}-${dd}`;
-        }
-
-        // ADD BOOKING ACTION
-        function processAndAddBooking() {
-            const textInput = document.getElementById('rawTextInput');
-            const rawText = textInput.value.trim();
-
-            if (!rawText) {
-                showToast('Please paste a booking message first!', true);
-                return;
-            }
-
-            const parsed = parseDatesFromText(rawText);
-
-            const newBooking = {
-                id: 'b_' + Date.now(),
-                startDate: parsed.startDate,
-                endDate: parsed.endDate,
-                rawText: rawText
-            };
-
-            bookings.push(newBooking);
-            saveBookings();
-            textInput.value = '';
-
-            // Jump calendar to the month of the added booking
-            const [bYear, bMonth] = parsed.startDate.split('-').map(Number);
-            currentYear = bYear;
-            currentMonth = bMonth - 1;
-
-            renderCalendar();
-            showToast(`Booking plotted for ${parsed.startDate}${parsed.startDate !== parsed.endDate ? ' to ' + parsed.endDate : ''}`);
-        }
-
-        // RENDER MONTHLY CALENDAR
-        function renderCalendar() {
-            const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
-
-            document.getElementById('currentMonthYear').innerText = `${MONTH_NAMES[currentMonth]} ${currentYear}`;
-
-            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-            const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const prevMonthTotalDays = new Date(currentYear, currentMonth, 0).getDate();
-
-            const todayStr = new Date().toISOString().split('T')[0];
-
-            // Render Previous Month Padding Days
-            for (let i = firstDay - 1; i >= 0; i--) {
-                const cell = document.createElement('div');
-                cell.className = 'bg-dark-900/40 p-2 min-h-[100px] opacity-25 text-slate-600 text-xs font-semibold';
-                cell.innerText = prevMonthTotalDays - i;
-                grid.appendChild(cell);
-            }
-
-            // Render Current Month Days
-            for (let day = 1; day <= totalDays; day++) {
-                const monthFormatted = String(currentMonth + 1).padStart(2, '0');
-                const dayFormatted = String(day).padStart(2, '0');
-                const dateStr = `${currentYear}-${monthFormatted}-${dayFormatted}`;
-
-                const isToday = dateStr === todayStr;
-                const cell = document.createElement('div');
-                cell.className = `p-1.5 sm:p-2 min-h-[100px] bg-dark-800 flex flex-col justify-between transition hover:bg-dark-700/80 cursor-pointer group ${isToday ? 'ring-2 ring-gold-500 ring-inset bg-gold-500/5' : ''}`;
-                cell.onclick = () => openDayModal(dateStr);
-
-                // Date Number Header
-                const header = document.createElement('div');
-                header.className = 'flex justify-between items-center mb-1';
-                header.innerHTML = `<span class="text-xs font-bold ${isToday ? 'bg-gold-500 text-dark-900 w-5 h-5 rounded-full flex items-center justify-center' : 'text-slate-300 group-hover:text-gold-400'}">${day}</span>`;
-                cell.appendChild(header);
-
-                // Bookings Container inside cell
-                const container = document.createElement('div');
-                container.className = 'space-y-1 flex-1 overflow-y-auto max-h-[75px] scrollbar-none';
-
-                bookings.forEach((b, idx) => {
-                    if (dateStr >= b.startDate && dateStr <= b.endDate) {
-                        const pill = document.createElement('div');
-                        const styleClass = BADGE_STYLES[idx % BADGE_STYLES.length];
-                        const firstLine = b.rawText.split('\n')[0];
-
-                        pill.className = `px-1.5 py-1 rounded text-[10px] font-medium truncate border shadow-sm ${styleClass}`;
-                        pill.innerText = firstLine;
-                        container.appendChild(pill);
-                    }
-                });
-
-                cell.appendChild(container);
-                grid.appendChild(cell);
-            }
-        }
-
-        // DAY DETAILS MODAL
-        function openDayModal(dateStr) {
-            const modalTitle = document.getElementById('dayModalTitle');
-            const list = document.getElementById('dayBookingsList');
-            const d = new Date(dateStr + 'T00:00:00');
-
-            modalTitle.innerText = `Bookings for ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-            list.innerHTML = '';
-
-            const activeBookings = bookings.filter(b => dateStr >= b.startDate && dateStr <= b.endDate);
-
-            if (activeBookings.length === 0) {
-                list.innerHTML = `
-                    <div class="text-center py-10 text-slate-500 text-xs">
-                        <i class="fa-solid fa-calendar-xmark text-3xl mb-2 text-dark-600"></i>
-                        <p class="font-medium">No bookings recorded for this date.</p>
-                    </div>
-                `;
-            } else {
-                activeBookings.forEach(b => {
-                    const card = document.createElement('div');
-                    card.className = 'p-4 bg-dark-900 border border-dark-600 rounded-xl space-y-3 relative hover:border-gold-500/50 transition';
-
-                    const dateBadge = b.startDate === b.endDate 
-                        ? b.startDate 
-                        : `${b.startDate} to ${b.endDate}`;
-
-                    card.innerHTML = `
-                        <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-dark-600 pb-2">
-                            <span class="text-gold-400"><i class="fa-solid fa-calendar-day mr-1.5"></i>${dateBadge}</span>
-                            <button onclick="deleteBooking('${b.id}')" class="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2 py-1 rounded transition text-xs font-bold flex items-center space-x-1">
-                                <i class="fa-solid fa-trash-can"></i>
-                                <span>Delete</span>
-                            </button>
-                        </div>
-                        <pre class="text-xs sm:text-sm font-mono text-slate-200 whitespace-pre-wrap leading-relaxed bg-dark-800 p-3.5 rounded-lg border border-dark-600/80">${escapeHtml(b.rawText)}</pre>
-                    `;
-                    list.appendChild(card);
-                });
-            }
-
-            document.getElementById('dayModal').classList.remove('hidden');
-        }
-
-        function closeDayModal() {
-            document.getElementById('dayModal').classList.add('hidden');
-        }
-
-        function deleteBooking(id) {
-            bookings = bookings.filter(b => b.id !== id);
-            saveBookings();
-            closeDayModal();
-            renderCalendar();
-            showToast('Booking deleted.');
-        }
-
-        // SAMPLE LOADER FOR TESTING
-        function loadSampleText(type) {
-            const textarea = document.getElementById('rawTextInput');
-            if (type === 1) {
-                textarea.value = "Jane de leon\nOctober 31 2026\nDay tour 8am to 5pm\n7th birthday celebration\n100pax";
-            } else if (type === 2) {
-                textarea.value = "Santos Night Swim\nNov 5 2026\nNight Tour 7pm to 7am\nPrivate Pool Access\n30pax";
-            } else {
-                textarea.value = "Carlos & Maria Wedding\nNov 12 to Nov 14 2026\nFull Garden Venue + Pavilion + Catering\nVIP Guest Accommodations\n₱50,000 Deposit Received";
-            }
-        }
-
-        // PUBLISH GUIDE MODAL
-        function openPublishGuide() {
-            document.getElementById('publishGuideModal').classList.remove('hidden');
-        }
-
-        function closePublishGuide() {
-            document.getElementById('publishGuideModal').classList.add('hidden');
-        }
-
-        // CALENDAR NAV CONTROLS
-        function changeMonth(delta) {
-            currentMonth += delta;
-            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            renderCalendar();
-        }
-
-        function goToToday() {
-            const now = new Date();
-            currentMonth = now.getMonth();
-            currentYear = now.getFullYear();
-            renderCalendar();
-        }
-
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toastIcon');
-            
-            icon.className = isError 
-                ? "fa-solid fa-circle-exclamation text-rose-400 text-sm" 
-                : "fa-solid fa-circle-check text-gold-400 text-sm";
-
-            document.getElementById('toastMsg').innerText = msg;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3500);
-        }
-
-        function escapeHtml(text) {
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-    </script>
+<body class="min-h-screen pb-12">
+<!-- Header -->
+<header class="border-b border-casanova-border bg-casanova-dark sticky top-0 z-30 shadow-lg">
+<div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="text-center sm:text-left">
+<h1 class="font-serif text-2xl sm:text-3xl font-bold tracking-widest gold-gradient-text">CASANOVA</h1>
+<p class="text-xs font-serif tracking-widest text-casanova-goldLight opacity-80 uppercase">Garden Resort & Events Place</p>
+</div>
+<div class="flex items-center space-x-3">
+<span id="syncStatus" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
+<span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Cloud Synced
+</span>
+<button onclick="fetchCloudBookings()" class="p-2 rounded-lg bg-casanova-card border border-casanova-border hover:border-casanova-gold text-casanova-goldLight transition-all">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-6xl mx-auto px-4 mt-6">
+<!-- Paste Booking Section -->
+<section class="bg-casanova-card border gold-border rounded-xl p-5 mb-8 shadow-xl">
+<h2 class="font-serif text-lg font-semibold gold-gradient-text mb-2">Paste Booking Details</h2>
+<p class="text-xs text-gray-400 mb-3">Paste the unedited booking message. The app automatically detects dates and syncs to the team calendar.</p>
+<textarea id="rawText" rows="4" class="w-full bg-casanova-dark border border-casanova-border rounded-lg p-3 text-sm text-gray-200 focus:outline-none focus:border-casanova-gold transition-all" placeholder="Paste booking details here... e.g.&#10;Jane de leon&#10;October 31 2026&#10;Day tour 8am to 5pm&#10;7th birthday&#10;100pax"></textarea>
+<div class="mt-3 flex justify-end">
+<button onclick="addBookingFromRaw()" class="gold-button px-6 py-2.5 rounded-lg text-sm transition-all shadow-md">Sync & Add to Calendar</button>
+</div>
+</section>
+<!-- Calendar Header -->
+<div class="flex items-center justify-between mb-4 bg-casanova-card p-4 rounded-xl border border-casanova-border">
+<button onclick="changeMonth(-1)" class="px-3 py-1.5 rounded bg-casanova-dark border border-casanova-border hover:border-casanova-gold text-sm text-casanova-gold">← Prev</button>
+<h3 id="currentMonthYear" class="font-serif text-lg font-semibold gold-gradient-text">---</h3>
+<button onclick="changeMonth(1)" class="px-3 py-1.5 rounded bg-casanova-dark border border-casanova-border hover:border-casanova-gold text-sm text-casanova-gold">Next →</button>
+</div>
+<!-- Calendar Grid -->
+<div class="grid grid-cols-7 gap-1 sm:gap-2 mb-8">
+<div class="text-center font-serif text-xs font-semibold py-2 text-casanova-gold opacity-80">SUN</div>
+<div class="text-center font-serif text-xs font-semibold py-2 text-casanova-gold opacity-80">MON</div>
+<div class="text-center font-serif text-xs font-semibold py-2 text-casanova-gold opacity-80">TUE</div>
+<div class="text-center font-serif text-xs font-semibold py-2 text-casanova-gold opacity-80">WED</div>
+<div class="text-center font-serif text-xs font-semibold py-2 text-casanova-gold opacity-80">THU</div>
+<div class="text-center font-serif text-xs font-semibold py-2 text-casanova-gold opacity-80">FRI</div>
+<div class="text-center font-serif text-xs font-semibold py-2 text-casanova-gold opacity-80">SAT</div>
+<div id="calendarDays" class="contents"></div>
+</div>
+</main>
+<!-- Booking Details Modal -->
+<div id="dayModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+<div class="bg-casanova-card border gold-border rounded-xl max-w-lg w-full p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+<div class="flex justify-between items-center mb-4 border-b border-casanova-border pb-3">
+<h3 id="modalDateTitle" class="font-serif text-lg font-bold gold-gradient-text">---</h3>
+<button onclick="closeModal()" class="text-gray-400 hover:text-white">×</button>
+</div>
+<div id="modalBookingsList" class="space-y-4"></div>
+</div>
+</div>
+<script>
+const BIN_ID = '6adb1708ac6210605a4b3eb6';
+const API_KEY = '2a10$GtPv6vF8FiuFrdhFYueYQO49kCGcyvy5dc1htkC65jxU8Vm6uoBoW';
+let bookings = [];
+let currentDate = new Date();
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+async function fetchCloudBookings() {
+document.getElementById('syncStatus').innerText = 'Syncing...';
+try {
+const res = await fetch(⁠https://api.jsonbin.io/v3/b/${BIN_ID}/latest⁠, {
+headers: { 'X-Master-Key': API_KEY }
+});
+const data = await res.json();
+bookings = data.record.bookings || [];
+document.getElementById('syncStatus').innerText = 'Cloud Synced';
+renderCalendar();
+} catch(e) {
+console.error(e);
+document.getElementById('syncStatus').innerText = 'Sync Failed';
+}
+}
+async function saveCloudBookings() {
+document.getElementById('syncStatus').innerText = 'Saving...';
+try {
+await fetch(⁠https://api.jsonbin.io/v3/b/${BIN_ID}⁠, {
+method: 'PUT',
+headers: {
+'Content-Type': 'application/json',
+'X-Master-Key': API_KEY
+},
+body: JSON.stringify({ bookings: bookings })
+});
+document.getElementById('syncStatus').innerText = 'Cloud Synced';
+} catch(e) {
+alert('Failed to sync changes to cloud.');
+}
+}
+function parseDatesFromText(text) {
+const lines = text.split('\n');
+let foundDate = null;
+const currentYear = new Date().getFullYear();
+for (let line of lines) {
+for (let m = 0; m < monthNames.length; m++) {
+const mName = monthNames[m];
+const regex = new RegExp(⁠(${mName}|${mName.substr(0,3)})\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*,?\\s*(\\d{4}))?⁠, 'i');
+const match = line.match(regex);
+if (match) {
+const day = parseInt(match[2]);
+const year = match[3] ? parseInt(match[3]) : currentYear;
+foundDate = new Date(year, m, day);
+break;
+}
+}
+if (foundDate) break;
+}
+if (!foundDate) {
+foundDate = new Date();
+}
+const yyyy = foundDate.getFullYear();
+const mm = String(foundDate.getMonth() + 1).padStart(2, '0');
+const dd = String(foundDate.getDate()).padStart(2, '0');
+return [⁠${yyyy}-${mm}-${dd}⁠];
+}
+async function addBookingFromRaw() {
+const raw = document.getElementById('rawText').value.trim();
+if (!raw) return alert('Please paste booking text.');
+const dates = parseDatesFromText(raw);
+const newBooking = {
+id: Date.now().toString(),
+rawText: raw,
+dates: dates
+};
+bookings.push(newBooking);
+document.getElementById('rawText').value = '';
+await saveCloudBookings();
+renderCalendar();
+}
+async function deleteBooking(id) {
+if (confirm('Delete this booking?')) {
+bookings = bookings.filter(b => b.id !== id);
+await saveCloudBookings();
+closeModal();
+renderCalendar();
+}
+}
+function renderCalendar() {
+const year = currentDate.getFullYear();
+const month = currentDate.getMonth();
+document.getElementById('currentMonthYear').innerText = ⁠${monthNames[month]} ${year}⁠;
+const firstDay = new Date(year, month, 1).getDay();
+const totalDays = new Date(year, month + 1, 0).getDate();
+const container = document.getElementById('calendarDays');
+container.innerHTML = '';
+for (let i = 0; i < firstDay; i++) {
+const empty = document.createElement('div');
+empty.className = 'min-h-[90px] bg-casanova-dark/40 rounded-lg border border-casanova-border/30';
+container.appendChild(empty);
+}
+for (let day = 1; day <= totalDays; day++) {
+const dayStr = ⁠${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}⁠;
+const dayBookings = bookings.filter(b => b.dates.includes(dayStr));
+const cell = document.createElement('div');
+cell.className = 'min-h-[90px] bg-casanova-card border border-casanova-border rounded-lg p-1.5 flex flex-col cursor-pointer hover:border-casanova-gold/50 transition-all';
+cell.onclick = () => openDayModal(dayStr, dayBookings);
+const num = document.createElement('div');
+num.className = 'text-xs font-semibold text-gray-400 mb-1';
+num.innerText = day;
+cell.appendChild(num);
+dayBookings.forEach(b => {
+const badge = document.createElement('div');
+badge.className = 'bg-casanova-dark border border-casanova-gold/40 text-[10px] text-casanova-goldLight p-1 rounded mb-1 truncate';
+const firstLine = b.rawText.split('\n')[0] || 'Booking';
+badge.innerText = firstLine;
+cell.appendChild(badge);
+});
+container.appendChild(cell);
+}
+}
+function changeMonth(delta) {
+currentDate.setMonth(currentDate.getMonth() + delta);
+renderCalendar();
+}
+function openDayModal(dateStr, dayBookings) {
+document.getElementById('modalDateTitle').innerText = ⁠Bookings for ${dateStr}⁠;
+const list = document.getElementById('modalBookingsList');
+list.innerHTML = '';
+if (dayBookings.length === 0) {
+list.innerHTML = '<p class="text-sm text-gray-400">No bookings on this day.</p>';
+} else {
+dayBookings.forEach(b => {
+const item = document.createElement('div');
+item.className = 'bg-casanova-dark border border-casanova-border rounded-lg p-4 relative';
+item.innerHTML = ⁠<pre class="text-xs text-gray-200 whitespace-pre-wrap font-sans">${b.rawText}</pre> <button onclick="deleteBooking('${b.id}')" class="mt-3 text-xs text-red-400 hover:underline">Delete Booking</button>⁠;
+list.appendChild(item);
+});
+}
+document.getElementById('dayModal').classList.remove('hidden');
+}
+function closeModal() {
+document.getElementById('dayModal').classList.add('hidden');
+}
+fetchCloudBookings();
+</script>
 </body>
 </html>
