@@ -280,6 +280,61 @@
 
         </div>
         <!-- /GATED APP CONTENT -->
+
+        <!-- ADMIN PANEL (full page, swaps in for the calendar — not a popup) -->
+        <div id="adminPanelView" class="hidden">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-serif text-xl sm:text-2xl font-bold gold-gradient-text flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield text-gold-500"></i>
+                    <span>Admin Panel</span>
+                </h2>
+                <button onclick="closeAdminPanel()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 text-slate-200 text-xs font-semibold rounded-xl transition border border-dark-600 flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span class="hidden sm:inline">Back to Calendar</span>
+                </button>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Section nav -->
+                <div class="md:w-48 shrink-0">
+                    <div class="flex md:flex-col gap-1.5 bg-dark-800 border gold-border rounded-2xl p-2 overflow-x-auto md:overflow-visible">
+                        <button id="adminTabPending" type="button" onclick="switchAdminTab('pending')" class="text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl transition whitespace-nowrap flex items-center justify-between">
+                            <span><i class="fa-solid fa-user-clock mr-2 w-4"></i>Pending</span><span id="adminTabPendingCount"></span>
+                        </button>
+                        <button id="adminTabStaff" type="button" onclick="switchAdminTab('staff')" class="text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl transition whitespace-nowrap">
+                            <i class="fa-solid fa-users mr-2 w-4"></i>Staff
+                        </button>
+                        <button id="adminTabInvite" type="button" onclick="switchAdminTab('invite')" class="text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl transition whitespace-nowrap">
+                            <i class="fa-solid fa-user-plus mr-2 w-4"></i>Invite
+                        </button>
+                        <button id="adminTabDeletions" type="button" onclick="switchAdminTab('deletions')" class="text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl transition whitespace-nowrap">
+                            <i class="fa-solid fa-trash-can mr-2 w-4"></i>Deletions
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Section content -->
+                <div class="flex-1 bg-dark-800 border gold-border rounded-2xl p-5 sm:p-6 min-h-[420px]">
+                    <div id="adminPanePending" class="space-y-2"></div>
+
+                    <div id="adminPaneStaff" class="space-y-2 hidden"></div>
+
+                    <div id="adminPaneInvite" class="space-y-3 hidden max-w-lg">
+                        <p class="text-xs text-slate-400">Pre-approve someone's email so they get access immediately when they sign up — no invite email is sent (this static site has no backend to send one); just tell them to use "Sign Up" with this exact email.</p>
+                        <div id="inviteError" class="hidden px-3 py-2 bg-rose-950 border border-rose-800 text-rose-400 text-xs rounded-lg"></div>
+                        <div class="flex gap-2">
+                            <input id="inviteEmailInput" type="email" placeholder="staffmember@email.com" class="flex-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                            <button type="button" onclick="sendStaffInvite()" class="px-4 py-2 gold-gradient-bg text-black font-bold text-xs rounded-lg transition whitespace-nowrap">Invite</button>
+                        </div>
+                        <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide pt-2">Outstanding Invites</h4>
+                        <div id="adminInvitesList" class="space-y-2"></div>
+                    </div>
+
+                    <div id="adminPaneDeletions" class="space-y-2 hidden"></div>
+                </div>
+            </div>
+        </div>
+        <!-- /ADMIN PANEL -->
     </main>
 
     <!-- DAY DETAILS MODAL -->
@@ -314,7 +369,16 @@
                 <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <div class="px-6 pt-4">
+            <div class="px-6 pt-5">
+                <button type="button" onclick="handleGoogleSignIn()" class="w-full py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-xs rounded-xl transition shadow-sm border border-gray-300 flex items-center justify-center space-x-2">
+                    <i class="fa-brands fa-google text-sm"></i>
+                    <span>Continue with Google</span>
+                </button>
+                <div class="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-wide my-4">
+                    <div class="flex-1 h-px bg-dark-600"></div>
+                    <span>or use email</span>
+                    <div class="flex-1 h-px bg-dark-600"></div>
+                </div>
                 <div class="flex bg-dark-900 rounded-lg p-1 border border-dark-600">
                     <button id="authTabSignIn" type="button" onclick="switchAuthTab('signin')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">Sign In</button>
                     <button id="authTabSignUp" type="button" onclick="switchAuthTab('signup')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition">Sign Up</button>
@@ -345,45 +409,6 @@
     </div>
 
     <!-- ADMIN PANEL MODAL -->
-    <div id="adminPanelModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-dark-800 rounded-2xl max-w-xl w-full shadow-2xl border gold-border overflow-hidden flex flex-col max-h-[85vh]">
-            <div class="px-6 py-4 bg-dark-900 border-b border-dark-600 flex items-center justify-between">
-                <h3 class="font-serif font-bold text-base text-gold-400"><i class="fa-solid fa-user-shield mr-2"></i>Admin Panel</h3>
-                <button onclick="closeAdminPanel()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <div class="px-6 pt-4">
-                <div class="flex bg-dark-900 rounded-lg p-1 border border-dark-600 overflow-x-auto">
-                    <button id="adminTabPending" type="button" onclick="switchAdminTab('pending')" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition whitespace-nowrap">Pending<span id="adminTabPendingCount"></span></button>
-                    <button id="adminTabStaff" type="button" onclick="switchAdminTab('staff')" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition whitespace-nowrap">Staff</button>
-                    <button id="adminTabInvite" type="button" onclick="switchAdminTab('invite')" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition whitespace-nowrap">Invite</button>
-                    <button id="adminTabDeletions" type="button" onclick="switchAdminTab('deletions')" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition whitespace-nowrap">Deletions</button>
-                </div>
-            </div>
-
-            <div class="p-6 overflow-y-auto flex-1">
-                <div id="adminPanePending" class="space-y-2"></div>
-
-                <div id="adminPaneStaff" class="space-y-2 hidden"></div>
-
-                <div id="adminPaneInvite" class="space-y-3 hidden">
-                    <p class="text-xs text-slate-400">Pre-approve someone's email so they get access immediately when they sign up — no invite email is sent (this static site has no backend to send one); just tell them to use "Sign Up" with this exact email.</p>
-                    <div id="inviteError" class="hidden px-3 py-2 bg-rose-950 border border-rose-800 text-rose-400 text-xs rounded-lg"></div>
-                    <div class="flex gap-2">
-                        <input id="inviteEmailInput" type="email" placeholder="staffmember@email.com" class="flex-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
-                        <button type="button" onclick="sendStaffInvite()" class="px-4 py-2 gold-gradient-bg text-black font-bold text-xs rounded-lg transition whitespace-nowrap">Invite</button>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide pt-2">Outstanding Invites</h4>
-                    <div id="adminInvitesList" class="space-y-2"></div>
-                </div>
-
-                <div id="adminPaneDeletions" class="space-y-2 hidden"></div>
-            </div>
-            <div class="px-6 py-4 bg-dark-900 border-t border-dark-600 flex justify-end">
-                <button onclick="closeAdminPanel()" class="px-5 py-2 bg-dark-700 hover:bg-dark-600 text-slate-200 font-semibold text-xs rounded-xl transition border border-dark-600">Close</button>
-            </div>
-        </div>
-    </div>
 
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 bg-dark-800 text-slate-100 text-xs font-semibold rounded-xl shadow-2xl border gold-border flex items-center space-x-2">
@@ -399,7 +424,7 @@
         let initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc, getDoc,
             onSnapshot, query, where, orderBy, limit, serverTimestamp;
         let getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-            signOut, sendPasswordResetEmail;
+            signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup;
 
         // ============================================================
         // ONE-TIME SETUP: paste your Firebase project config below.
@@ -439,9 +464,13 @@
         let recentDeletionsList = [];
         let authModalMode = 'signin';
         let currentAdminTab = 'pending';
+        let adminViewOpen = false;
 
         const TAB_ACTIVE_CLASS = 'flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition bg-dark-700 text-gold-400 whitespace-nowrap';
         const TAB_INACTIVE_CLASS = 'flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-md transition text-slate-400 hover:text-slate-200 whitespace-nowrap';
+
+        const ADMIN_TAB_ACTIVE_CLASS = 'text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl transition whitespace-nowrap flex items-center justify-between bg-dark-700 text-gold-400';
+        const ADMIN_TAB_INACTIVE_CLASS = 'text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl transition whitespace-nowrap flex items-center justify-between text-slate-400 hover:text-slate-200 hover:bg-dark-700/50';
 
         function isApproved() {
             return !!(myStaffStatus && myStaffStatus.status === 'approved');
@@ -555,7 +584,7 @@
                 const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
                 ({ initializeApp } = appMod);
                 ({ getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, setDoc, getDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp } = fsMod);
-                ({ getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } = authMod);
+                ({ getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } = authMod);
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
@@ -678,6 +707,17 @@
         }
 
         // Full-page gate shown instead of the calendar until signed in AND approved.
+        // Shows whichever of the calendar / admin page is current, but only once approved —
+        // called both when toggling the admin page and whenever approval status changes.
+        function applyContentVisibility() {
+            const content = document.getElementById('appContent');
+            const adminView = document.getElementById('adminPanelView');
+            if (!content || !adminView) return;
+            const approved = isApproved();
+            content.classList.toggle('hidden', !approved || adminViewOpen);
+            adminView.classList.toggle('hidden', !approved || !adminViewOpen);
+        }
+
         function updateAppGate() {
             const gate = document.getElementById('appGate');
             const content = document.getElementById('appContent');
@@ -686,8 +726,14 @@
 
             const approved = isApproved();
             gate.classList.toggle('hidden', approved);
-            content.classList.toggle('hidden', !approved);
             if (syncBadge) syncBadge.classList.toggle('hidden', !approved);
+
+            if (!approved) {
+                // Dropped out of approved status (e.g. revoked by another admin) while
+                // possibly sitting on the admin page — fall all the way back to the gate.
+                adminViewOpen = false;
+            }
+            applyContentVisibility();
 
             if (approved) return;
 
@@ -790,9 +836,47 @@
                 'auth/wrong-password': 'Incorrect password.',
                 'auth/user-not-found': 'No account found with that email.',
                 'auth/invalid-credential': 'Incorrect email or password.',
-                'auth/too-many-requests': 'Too many attempts — please wait a bit and try again.'
+                'auth/too-many-requests': 'Too many attempts — please wait a bit and try again.',
+                'auth/popup-blocked': 'Your browser blocked the Google sign-in popup — please allow popups for this site and try again.',
+                'auth/account-exists-with-different-credential': 'An account with that email already exists using a different sign-in method — try signing in with email and password instead.'
             };
             return map[err.code] || (err.message || 'Something went wrong — please try again.');
+        }
+
+        // Shared by email/password sign-up and Google sign-in: creates the staff record
+        // on first-ever sign-in only (never overwrites an existing one, which would reset
+        // an already-approved/admin account back to 'pending'), consuming a matching
+        // Invite-tab pre-approval if one exists so the person skips the pending wait.
+        async function createStaffRecordIfMissing(uid, rawEmail, displayName) {
+            const existing = await getDoc(doc(db, 'staff', uid));
+            if (existing.exists()) {
+                return { ...existing.data(), preApproved: false };
+            }
+
+            const inviteKey = (rawEmail || '').toLowerCase();
+            let preApproved = false;
+            try {
+                const inviteSnap = await getDoc(doc(db, 'invites', inviteKey));
+                preApproved = inviteSnap.exists();
+            } catch (lookupErr) {
+                console.error('Invite lookup failed:', lookupErr);
+            }
+
+            const data = {
+                email: rawEmail,
+                displayName: displayName || rawEmail,
+                status: preApproved ? 'approved' : 'pending',
+                role: 'staff',
+                requestedAt: serverTimestamp(),
+                ...(preApproved ? { reviewedAt: serverTimestamp(), reviewedBy: 'invite' } : {})
+            };
+            await setDoc(doc(db, 'staff', uid), data);
+
+            if (preApproved) {
+                deleteDoc(doc(db, 'invites', inviteKey)).catch(e => console.error('Could not consume invite:', e));
+            }
+
+            return { ...data, preApproved };
         }
 
         async function handleAuthSubmit() {
@@ -819,32 +903,12 @@
 
             try {
                 if (authModalMode === 'signup') {
+                    // email/password accounts are created with exactly the lowercased
+                    // email above, so cred.user.email will match it — safe to reuse here.
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
-
-                    // Admin pre-approved this email via the Invite tab? Skip the pending wait.
-                    let preApproved = false;
-                    try {
-                        const inviteSnap = await getDoc(doc(db, 'invites', email));
-                        preApproved = inviteSnap.exists();
-                    } catch (lookupErr) {
-                        console.error('Invite lookup failed:', lookupErr);
-                    }
-
-                    await setDoc(doc(db, 'staff', cred.user.uid), {
-                        email,
-                        displayName: name,
-                        status: preApproved ? 'approved' : 'pending',
-                        role: 'staff',
-                        requestedAt: serverTimestamp(),
-                        ...(preApproved ? { reviewedAt: serverTimestamp(), reviewedBy: 'invite' } : {})
-                    });
-
-                    if (preApproved) {
-                        deleteDoc(doc(db, 'invites', email)).catch(e => console.error('Could not consume invite:', e));
-                    }
-
+                    const result = await createStaffRecordIfMissing(cred.user.uid, email, name);
                     closeAuthModal();
-                    showToast(preApproved
+                    showToast(result.preApproved
                         ? "Account created — you were already invited, so you're in!"
                         : 'Account created! An admin needs to approve it before you can view or manage bookings.');
                 } else {
@@ -854,6 +918,33 @@
                 }
             } catch (err) {
                 console.error('Auth error:', err);
+                errorEl.textContent = authErrorMessage(err);
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function handleGoogleSignIn() {
+            if (!auth) {
+                showToast('Shared database is not configured yet — ask the site admin to finish Firebase setup in index.html.', true);
+                return;
+            }
+            const errorEl = document.getElementById('authError');
+            errorEl.classList.add('hidden');
+            try {
+                const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+                // Google (not us) assigns this account's email, so it's passed through
+                // unmodified — it must match request.auth.token.email exactly for the
+                // Firestore security rule to accept the write.
+                const result = await createStaffRecordIfMissing(cred.user.uid, cred.user.email || '', cred.user.displayName);
+                closeAuthModal();
+                showToast(result.preApproved
+                    ? "Signed in with Google — you were already invited, so you're in!"
+                    : 'Signed in with Google.');
+            } catch (err) {
+                if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+                    return; // user closed the popup themselves — nothing went wrong
+                }
+                console.error('Google sign-in failed:', err);
                 errorEl.textContent = authErrorMessage(err);
                 errorEl.classList.remove('hidden');
             }
@@ -889,13 +980,15 @@
 
         // ADMIN PANEL (pending sign-ups, staff directory, invites, deletion log)
         function openAdminPanel() {
+            adminViewOpen = true;
             switchAdminTab('pending');
             renderAdminPanel();
-            document.getElementById('adminPanelModal').classList.remove('hidden');
+            applyContentVisibility();
         }
 
         function closeAdminPanel() {
-            document.getElementById('adminPanelModal').classList.add('hidden');
+            adminViewOpen = false;
+            applyContentVisibility();
         }
 
         function switchAdminTab(tab) {
@@ -903,7 +996,7 @@
             const tabs = { pending: 'adminTabPending', staff: 'adminTabStaff', invite: 'adminTabInvite', deletions: 'adminTabDeletions' };
             const panes = { pending: 'adminPanePending', staff: 'adminPaneStaff', invite: 'adminPaneInvite', deletions: 'adminPaneDeletions' };
             Object.entries(tabs).forEach(([key, id]) => {
-                document.getElementById(id).className = key === tab ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS;
+                document.getElementById(id).className = key === tab ? ADMIN_TAB_ACTIVE_CLASS : ADMIN_TAB_INACTIVE_CLASS;
             });
             Object.entries(panes).forEach(([key, id]) => {
                 document.getElementById(id).classList.toggle('hidden', key !== tab);
@@ -1154,6 +1247,22 @@
             return candidate < todayLocalMidnight ? now.getFullYear() + 1 : now.getFullYear();
         }
 
+        // The regexes below only check "1 or 2 digits" for the day — they don't know
+        // October has 31 days, so "October 32" or "February 30" would otherwise sail
+        // through as a literal (invalid) date string. JS's Date constructor silently
+        // rolls invalid day/month combinations over into the next one instead of
+        // rejecting them, so the only reliable check is to build the date and confirm
+        // it reports back the exact year/month/day we asked for.
+        function isValidCalendarDate(year, month, day) {
+            const d = new Date(year, month, day);
+            return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+        }
+
+        function invalidDateMessage(year, month, day) {
+            const monthName = MONTH_NAMES[month] || 'that month';
+            return `${monthName} ${day}, ${year} isn't a real date — please check the day.`;
+        }
+
         // SMART NATURAL DATE PARSER
         function parseDatesFromText(text) {
             // Pattern 1: Range "Oct 31 to Nov 2" or "October 31 - November 2 2026"
@@ -1170,6 +1279,13 @@
                 // No explicit end year: same year as the start, unless the range wraps
                 // into the next year (e.g. "Dec 30 to Jan 2").
                 const y2 = rangeMatch[6] ? parseInt(rangeMatch[6]) : (m2 < m1 ? y1 + 1 : y1);
+
+                if (!isValidCalendarDate(y1, m1, d1)) {
+                    return invalidResult(invalidDateMessage(y1, m1, d1));
+                }
+                if (!isValidCalendarDate(y2, m2, d2)) {
+                    return invalidResult(invalidDateMessage(y2, m2, d2));
+                }
 
                 return {
                     startDate: formatDateString(y1, m1, d1),
@@ -1188,6 +1304,13 @@
                 const d2 = parseInt(sameMonthMatch[3]);
                 const y = sameMonthMatch[4] ? parseInt(sameMonthMatch[4]) : resolveUpcomingYear(m, d1);
 
+                if (!isValidCalendarDate(y, m, d1)) {
+                    return invalidResult(invalidDateMessage(y, m, d1));
+                }
+                if (!isValidCalendarDate(y, m, d2)) {
+                    return invalidResult(invalidDateMessage(y, m, d2));
+                }
+
                 return {
                     startDate: formatDateString(y, m, d1),
                     endDate: formatDateString(y, m, d2),
@@ -1204,6 +1327,10 @@
                 let dayNum = parseInt(monthDayMatch[2] || monthDayMatch[3]);
                 let monthNum = MONTH_MAP[mName.toLowerCase()];
                 let yearNum = monthDayMatch[5] ? parseInt(monthDayMatch[5]) : resolveUpcomingYear(monthNum, dayNum);
+
+                if (!isValidCalendarDate(yearNum, monthNum, dayNum)) {
+                    return invalidResult(invalidDateMessage(yearNum, monthNum, dayNum));
+                }
 
                 const formatted = formatDateString(yearNum, monthNum, dayNum);
                 return { startDate: formatted, endDate: formatted, dateFound: true };
@@ -1223,14 +1350,22 @@
                 else if (p3 > 1000) { y = p3; m = p1 - 1; d = p2; }
                 else { m = p1 - 1; d = p2; y = resolveUpcomingYear(m, d); }
 
+                if (!isValidCalendarDate(y, m, d)) {
+                    return invalidResult(invalidDateMessage(y, m, d));
+                }
+
                 const formatted = formatDateString(y, m, d);
                 return { startDate: formatted, endDate: formatted, dateFound: true };
             }
 
             // Fallback: no recognizable date in the text — caller should warn rather than
             // silently save a booking plotted on today's date.
+            return invalidResult(null);
+        }
+
+        function invalidResult(reason) {
             const todayStr = new Date().toISOString().split('T')[0];
-            return { startDate: todayStr, endDate: todayStr, dateFound: false };
+            return { startDate: todayStr, endDate: todayStr, dateFound: false, invalidReason: reason };
         }
 
         function formatDateString(y, m, d) {
@@ -1276,7 +1411,7 @@
 
             const parsed = parseDatesFromText(rawText);
             if (!parsed.dateFound) {
-                showToast('Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
+                showToast(parsed.invalidReason || 'Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
                 return;
             }
 
@@ -1476,7 +1611,7 @@
 
             const parsed = parseDatesFromText(rawText);
             if (!parsed.dateFound) {
-                showToast('Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
+                showToast(parsed.invalidReason || 'Couldn\'t find a date in that text — please check the format (e.g. "October 31 2026").', true);
                 return;
             }
 
@@ -1657,6 +1792,7 @@
         window.closeAuthModal = closeAuthModal;
         window.switchAuthTab = switchAuthTab;
         window.handleAuthSubmit = handleAuthSubmit;
+        window.handleGoogleSignIn = handleGoogleSignIn;
         window.handlePasswordReset = handlePasswordReset;
         window.signOutUser = signOutUser;
         window.openAdminPanel = openAdminPanel;
