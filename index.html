@@ -203,7 +203,7 @@
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <label for="rawTextInput" class="text-sm font-semibold text-slate-100 flex items-center space-x-2">
                     <i class="fa-solid fa-paste text-gold-500"></i>
-                    <span class="font-serif text-base sm:text-lg tracking-wide gold-gradient-text">Paste Booking Details</span>
+                    <span class="font-serif text-base sm:text-lg tracking-wide gold-gradient-text">Add Booking</span>
                 </label>
                 <span class="text-xs text-slate-400 font-normal">
                     <i class="fa-solid fa-wand-magic-sparkles text-gold-500/80 mr-1"></i>
@@ -211,8 +211,26 @@
                 </span>
             </div>
 
-            <div class="relative">
-                <textarea id="rawTextInput" rows="4" placeholder="Paste booking message directly here...&#10;e.g.&#10;Jane de leon&#10;October 31 2026&#10;Day tour 8am to 5pm&#10;7th birthday celebration&#10;100pax" class="w-full p-4 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-xl text-xs sm:text-sm font-mono text-slate-200 placeholder-slate-500 leading-relaxed outline-none transition focus:ring-1 focus:ring-gold-500/30"></textarea>
+            <div>
+                <label for="bookingNameInput" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Client / Event Name</label>
+                <input id="bookingNameInput" type="text" placeholder="e.g. Jane de Leon, Carlos & Maria Wedding" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs sm:text-sm text-slate-200 placeholder-slate-500 outline-none transition">
+            </div>
+
+            <div>
+                <label for="rawTextInput" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Booking Details</label>
+                <textarea id="rawTextInput" rows="4" placeholder="October 31 2026&#10;Day tour 8am to 5pm&#10;7th birthday celebration&#10;100pax" class="w-full mt-1 p-4 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-xl text-xs sm:text-sm font-mono text-slate-200 placeholder-slate-500 leading-relaxed outline-none transition focus:ring-1 focus:ring-gold-500/30"></textarea>
+            </div>
+
+            <!-- Only shown to admin/owner (see updateBookingFormFinancialsVisibility) -->
+            <div id="bookingIncomeFields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label for="bookingIncomeInput" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Income (optional)</label>
+                    <input id="bookingIncomeInput" type="number" step="0.01" min="0" placeholder="e.g. 50000" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 placeholder-slate-500 outline-none transition">
+                </div>
+                <div>
+                    <label for="bookingIncomeDescInput" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">What's it for? (optional)</label>
+                    <input id="bookingIncomeDescInput" type="text" placeholder="e.g. Deposit" class="w-full mt-1 p-2.5 bg-dark-900 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 placeholder-slate-500 outline-none transition">
+                </div>
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -224,7 +242,7 @@
                     <span>•</span>
                     <button type="button" onclick="loadSampleText(3)" class="text-gold-400 hover:text-gold-300 hover:underline">Wedding (Multi-Day)</button>
                 </div>
-                
+
                 <button onclick="processAndAddBooking()" class="px-6 py-3 gold-gradient-bg text-black font-bold text-xs sm:text-sm rounded-xl transition shadow-lg flex items-center space-x-2 ml-auto hover:scale-[1.01] active:scale-[0.99]">
                     <i class="fa-solid fa-calendar-plus text-xs"></i>
                     <span>Add to Calendar</span>
@@ -881,9 +899,17 @@
             }
         }
 
+        // The Income fields on the Add Booking form are only ever shown to admin/owner —
+        // regular staff should never see a price input, same as the rest of the app.
+        function updateBookingFormFinancialsVisibility() {
+            const fields = document.getElementById('bookingIncomeFields');
+            if (fields) fields.classList.toggle('hidden', !canSeeFinancials());
+        }
+
         function updateAuthUI() {
             const container = document.getElementById('authControls');
             if (!container) return;
+            updateBookingFormFinancialsVisibility();
 
             // All pre-approval messaging now lives on the full-page gate (updateAppGate);
             // the header only ever shows the signed-in state once actually approved.
@@ -1646,7 +1672,7 @@
         async function setBookingCost(bookingId) {
             if (!canSeeFinancials()) return;
             const existing = bookingFinancials[bookingId];
-            const input = prompt('Enter the booking cost (numbers only):', existing && typeof existing.cost === 'number' ? String(existing.cost) : '');
+            const input = prompt('Enter the booking income (numbers only):', existing && typeof existing.cost === 'number' ? String(existing.cost) : '');
             if (input === null) return;
             const amount = parseFloat(input);
             if (isNaN(amount) || amount < 0) {
@@ -1664,10 +1690,10 @@
                     updatedByEmail: currentUser.email,
                     updatedByName: staffDisplayLabel(myStaffStatus)
                 });
-                showToast('Booking cost saved.');
+                showToast('Booking income saved.');
             } catch (err) {
-                console.error('Set booking cost failed:', err);
-                showToast('Could not save cost: ' + err.message, true);
+                console.error('Set booking income failed:', err);
+                showToast('Could not save income: ' + err.message, true);
             }
         }
 
@@ -1700,19 +1726,36 @@
         // SMART NATURAL DATE PARSER
         function parseDatesFromText(text) {
             // Pattern 1: Range "Oct 31 to Nov 2" or "October 31 - November 2 2026"
-            const rangePattern = /(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)\s+(\d{1,2})(?:\s*,?\s*(\d{4}))?\s*(?:to|-|until)\s*(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September)?\s*(\d{1,2})(?:\s*,?\s*(\d{4}))?/i;
+            const rangePattern = /(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)[ \t]+(\d{1,2})(?:[ \t]*,?[ \t]*(\d{4}))?\s*(?:to|-|until)\s*(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)?[ \t]*(\d{1,2})(?:[ \t]*,?[ \t]*(\d{4}))?/i;
             const rangeMatch = text.match(rangePattern);
 
             if (rangeMatch) {
                 const m1 = MONTH_MAP[rangeMatch[1].toLowerCase()];
                 const d1 = parseInt(rangeMatch[2]);
-                const y1 = rangeMatch[3] ? parseInt(rangeMatch[3]) : resolveUpcomingYear(m1, d1);
-
                 const m2 = rangeMatch[4] ? MONTH_MAP[rangeMatch[4].toLowerCase()] : m1;
                 const d2 = parseInt(rangeMatch[5]);
-                // No explicit end year: same year as the start, unless the range wraps
-                // into the next year (e.g. "Dec 30 to Jan 2").
-                const y2 = rangeMatch[6] ? parseInt(rangeMatch[6]) : (m2 < m1 ? y1 + 1 : y1);
+
+                const explicitY1 = rangeMatch[3] ? parseInt(rangeMatch[3]) : null;
+                const explicitY2 = rangeMatch[6] ? parseInt(rangeMatch[6]) : null;
+
+                // A year stated on only one side of a range (e.g. "Sept 10 to Sept 12
+                // 2026") applies to the whole range, not just the side it's written
+                // next to — resolving each side independently could otherwise produce
+                // an end date earlier than the start.
+                let y1, y2;
+                if (explicitY1 !== null && explicitY2 !== null) {
+                    y1 = explicitY1;
+                    y2 = explicitY2;
+                } else if (explicitY1 !== null) {
+                    y1 = explicitY1;
+                    y2 = m2 < m1 ? y1 + 1 : y1;
+                } else if (explicitY2 !== null) {
+                    y2 = explicitY2;
+                    y1 = m2 < m1 ? y2 - 1 : y2;
+                } else {
+                    y1 = resolveUpcomingYear(m1, d1);
+                    y2 = m2 < m1 ? y1 + 1 : y1;
+                }
 
                 if (!isValidCalendarDate(y1, m1, d1)) {
                     return invalidResult(invalidDateMessage(y1, m1, d1));
@@ -1729,7 +1772,7 @@
             }
 
             // Pattern 2: Same Month Range "Nov 1-3 2026", "Oct 10-12"
-            const sameMonthRangePattern = /(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)\s+(\d{1,2})\s*-\s*(\d{1,2})(?:\s*,?\s*(\d{4}))?/i;
+            const sameMonthRangePattern = /(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)[ \t]+(\d{1,2})[ \t]*-[ \t]*(\d{1,2})(?:[ \t]*,?[ \t]*(\d{4}))?/i;
             const sameMonthMatch = text.match(sameMonthRangePattern);
 
             if (sameMonthMatch) {
@@ -1753,7 +1796,7 @@
             }
 
             // Pattern 3: Single Month Day Year "October 31 2026", "Oct 31, 2026", "31 Oct 2026"
-            const monthDayPattern = /(?:(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)\s+(\d{1,2})|(\d{1,2})\s+(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September))\s*,?\s*(\d{4})?/i;
+            const monthDayPattern = /(?:(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September|Oct|October|Nov|November|Dec|December)[ \t]+(\d{1,2})|(\d{1,2})[ \t]+(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|Sept|September))[ \t]*,?[ \t]*(\d{4})?/i;
             const monthDayMatch = text.match(monthDayPattern);
 
             if (monthDayMatch) {
@@ -1820,13 +1863,44 @@
             return bookings.filter(b => b.id !== excludeId && startDate <= b.endDate && b.startDate <= endDate);
         }
 
+        // Bookings created before the dedicated Client Name field existed have no
+        // clientName, so fall back to the first line of their pasted text for display.
+        function bookingDisplayName(b) {
+            return (b.clientName && b.clientName.trim()) || b.rawText.split('\n')[0];
+        }
+
         function overlapWarningText(overlaps) {
             const lines = overlaps.slice(0, 5).map(b => {
                 const range = b.startDate === b.endDate ? b.startDate : `${b.startDate} to ${b.endDate}`;
-                return `• ${b.rawText.split('\n')[0]} (${range})`;
+                return `• ${bookingDisplayName(b)} (${range})`;
             }).join('\n');
             const more = overlaps.length > 5 ? `\n...and ${overlaps.length - 5} more` : '';
             return `This date already has ${overlaps.length} booking(s), the resort's usual max per day (e.g. day tour + night tour):\n\n${lines}${more}\n\nAdd another anyway?`;
+        }
+
+        // Compares against the dedicated Client Name field. Older bookings saved before
+        // that field existed fall back to the first line of their pasted text, matching
+        // how they're displayed elsewhere. Checked across ALL dates, not just the one
+        // being booked — the point is "this person already has an entry somewhere",
+        // existing or new, could be a different date entirely. This only warns; it never
+        // touches the existing entry in any way.
+        function findBookingsBySimilarName(name, excludeId) {
+            const normalized = name.trim().toLowerCase();
+            if (!normalized) return [];
+            return bookings.filter(b => {
+                if (b.id === excludeId) return false;
+                const candidate = bookingDisplayName(b).trim().toLowerCase();
+                return candidate && (candidate === normalized || candidate.includes(normalized) || normalized.includes(candidate));
+            });
+        }
+
+        function duplicateNameWarningText(matches) {
+            const lines = matches.slice(0, 5).map(b => {
+                const range = b.startDate === b.endDate ? b.startDate : `${b.startDate} to ${b.endDate}`;
+                return `• ${bookingDisplayName(b)} (${range})`;
+            }).join('\n');
+            const more = matches.length > 5 ? `\n...and ${matches.length - 5} more` : '';
+            return `A booking with a similar name already exists:\n\n${lines}${more}\n\nAdd this booking anyway? (The existing one will not be touched.)`;
         }
 
         // A pasted booking message sometimes includes the price: currency-first
@@ -1885,9 +1959,31 @@
             return { price, priceDescription, strippedText: strippedText || text };
         }
 
+        // Reads the optional Income fields on the add/edit forms. An explicit value here
+        // always wins over whatever price was auto-extracted from the pasted text —
+        // falls back to the extracted price only when left blank.
+        function readIncomeOverride(amountElId, descElId) {
+            const amountEl = document.getElementById(amountElId);
+            if (!amountEl) return { price: null, priceDescription: null, provided: false };
+            const raw = amountEl.value.trim();
+            if (!raw) return { price: null, priceDescription: null, provided: false };
+            const amount = parseFloat(raw);
+            if (isNaN(amount) || amount < 0) return { price: null, priceDescription: null, provided: false };
+            const descEl = document.getElementById(descElId);
+            const priceDescription = descEl && descEl.value.trim() ? descEl.value.trim() : null;
+            return { price: amount, priceDescription, provided: true };
+        }
+
         async function processAndAddBooking() {
+            const nameInput = document.getElementById('bookingNameInput');
             const textInput = document.getElementById('rawTextInput');
+            const clientName = nameInput.value.trim();
             const rawText = textInput.value.trim();
+
+            if (!clientName) {
+                showToast('Please enter the client / event name.', true);
+                return;
+            }
 
             if (!rawText) {
                 showToast('Please paste a booking message first!', true);
@@ -1910,10 +2006,20 @@
                 return;
             }
 
-            const { price, priceDescription, strippedText } = extractPriceAndStrip(rawText);
+            const extracted = extractPriceAndStrip(rawText);
+            const override = readIncomeOverride('bookingIncomeInput', 'bookingIncomeDescInput');
+            const price = override.provided ? override.price : extracted.price;
+            const priceDescription = override.provided ? override.priceDescription : extracted.priceDescription;
+            const strippedText = extracted.strippedText;
+
+            const nameMatches = findBookingsBySimilarName(clientName, null);
+            if (nameMatches.length > 0 && !confirm(duplicateNameWarningText(nameMatches))) {
+                return;
+            }
 
             try {
                 const newDocRef = await addDoc(collection(db, 'bookings'), {
+                    clientName,
                     startDate: parsed.startDate,
                     endDate: parsed.endDate,
                     rawText: strippedText,
@@ -1932,7 +2038,12 @@
                     }).catch(err => console.error('Could not auto-save extracted price:', err));
                 }
 
+                nameInput.value = '';
                 textInput.value = '';
+                const incomeEl = document.getElementById('bookingIncomeInput');
+                const incomeDescEl = document.getElementById('bookingIncomeDescInput');
+                if (incomeEl) incomeEl.value = '';
+                if (incomeDescEl) incomeDescEl.value = '';
 
                 // Jump calendar to the month of the added booking
                 const [bYear, bMonth] = parsed.startDate.split('-').map(Number);
@@ -1994,10 +2105,9 @@
                     if (dateStr >= b.startDate && dateStr <= b.endDate) {
                         const pill = document.createElement('div');
                         const styleClass = badgeStyles[idx % badgeStyles.length];
-                        const firstLine = b.rawText.split('\n')[0];
 
                         pill.className = `px-1.5 py-1 rounded text-[10px] font-medium truncate border shadow-sm ${styleClass}`;
-                        pill.innerText = firstLine;
+                        pill.innerText = bookingDisplayName(b);
                         container.appendChild(pill);
                     }
                 });
@@ -2045,11 +2155,32 @@
                     : `${b.startDate} to ${b.endDate}`;
 
                 if (editingBookingId === b.id) {
+                    const fin = bookingFinancials[b.id];
+                    const editIncomeFields = canSeeFinancials() ? `
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="editIncomeInput_${b.id}" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Income (optional)</label>
+                                <input id="editIncomeInput_${b.id}" type="number" step="0.01" min="0" value="${fin && typeof fin.cost === 'number' ? fin.cost : ''}" class="w-full mt-1 p-2.5 bg-dark-800 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                            </div>
+                            <div>
+                                <label for="editIncomeDescInput_${b.id}" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">What's it for? (optional)</label>
+                                <input id="editIncomeDescInput_${b.id}" type="text" value="${escapeHtml((fin && fin.description) || '')}" class="w-full mt-1 p-2.5 bg-dark-800 border border-dark-600 focus:border-gold-500 rounded-lg text-xs text-slate-200 outline-none transition">
+                            </div>
+                        </div>
+                    ` : '';
                     card.innerHTML = `
                         <div class="flex items-center justify-between text-xs text-slate-400 font-semibold border-b border-dark-600 pb-2">
                             <span class="text-gold-400"><i class="fa-solid fa-pen mr-1.5"></i>Editing Booking</span>
                         </div>
-                        <textarea id="editTextarea_${b.id}" rows="4" class="w-full p-3 bg-dark-800 border border-gold-500/50 focus:border-gold-500 rounded-lg text-xs sm:text-sm font-mono text-slate-200 leading-relaxed outline-none transition">${escapeHtml(b.rawText)}</textarea>
+                        <div>
+                            <label for="editNameInput_${b.id}" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Client / Event Name</label>
+                            <input id="editNameInput_${b.id}" type="text" value="${escapeHtml(bookingDisplayName(b))}" class="w-full mt-1 p-2.5 bg-dark-800 border border-dark-600 focus:border-gold-500 rounded-lg text-xs sm:text-sm text-slate-200 outline-none transition">
+                        </div>
+                        <div>
+                            <label for="editTextarea_${b.id}" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Booking Details</label>
+                            <textarea id="editTextarea_${b.id}" rows="4" class="w-full mt-1 p-3 bg-dark-800 border border-gold-500/50 focus:border-gold-500 rounded-lg text-xs sm:text-sm font-mono text-slate-200 leading-relaxed outline-none transition">${escapeHtml(b.rawText)}</textarea>
+                        </div>
+                        ${editIncomeFields}
                         <div class="flex items-center justify-end space-x-2">
                             <button onclick="cancelEditBooking()" class="px-3 py-1.5 bg-dark-700 hover:bg-dark-600 text-slate-300 text-xs font-semibold rounded-lg transition border border-dark-600">Cancel</button>
                             <button onclick="saveEditedBooking('${b.id}')" class="px-3 py-1.5 gold-gradient-bg text-black text-xs font-bold rounded-lg transition">Save Changes</button>
@@ -2080,8 +2211,8 @@
                         const fin = bookingFinancials[b.id];
                         const hasCost = fin && typeof fin.cost === 'number';
                         const costLabel = hasCost
-                            ? `Cost: ${formatCurrency(fin.cost)}${fin.description ? ' — ' + escapeHtml(fin.description) : ''}`
-                            : 'Add cost';
+                            ? `Income: ${formatCurrency(fin.cost)}${fin.description ? ' — ' + escapeHtml(fin.description) : ''}`
+                            : 'Add income';
                         costLine = `
                             <button onclick="setBookingCost('${b.id}')" class="w-full flex items-center justify-between px-3 py-2 bg-gold-500/10 border border-gold-500/30 rounded-lg hover:bg-gold-500/15 transition text-left">
                                 <span class="text-xs font-semibold text-gold-400"><i class="fa-solid fa-coins mr-1.5"></i>${costLabel}</span>
@@ -2095,6 +2226,7 @@
                             <span class="text-gold-400"><i class="fa-solid fa-calendar-day mr-1.5"></i>${dateBadge}</span>
                             ${actionButtons}
                         </div>
+                        <p class="text-sm font-bold text-slate-100">${escapeHtml(bookingDisplayName(b))}</p>
                         <pre class="text-xs sm:text-sm font-mono text-slate-200 whitespace-pre-wrap leading-relaxed bg-dark-800 p-3.5 rounded-lg border border-dark-600/80">${escapeHtml(b.rawText)}</pre>
                         ${costLine}
                         ${attribution ? `<p class="text-[10px] text-slate-500">${attribution}</p>` : ''}
@@ -2124,6 +2256,12 @@
                 showToast(writeGateMessage(), true);
                 return;
             }
+            const nameInput = document.getElementById(`editNameInput_${id}`);
+            const clientName = nameInput.value.trim();
+            if (!clientName) {
+                showToast('Please enter the client / event name.', true);
+                return;
+            }
             const textarea = document.getElementById(`editTextarea_${id}`);
             const rawText = textarea.value.trim();
             if (!rawText) {
@@ -2142,10 +2280,20 @@
                 return;
             }
 
-            const { price, priceDescription, strippedText } = extractPriceAndStrip(rawText);
+            const extracted = extractPriceAndStrip(rawText);
+            const override = readIncomeOverride(`editIncomeInput_${id}`, `editIncomeDescInput_${id}`);
+            const price = override.provided ? override.price : extracted.price;
+            const priceDescription = override.provided ? override.priceDescription : extracted.priceDescription;
+            const strippedText = extracted.strippedText;
+
+            const nameMatches = findBookingsBySimilarName(clientName, id);
+            if (nameMatches.length > 0 && !confirm(duplicateNameWarningText(nameMatches))) {
+                return;
+            }
 
             try {
                 await updateDoc(doc(db, 'bookings', id), {
+                    clientName,
                     startDate: parsed.startDate,
                     endDate: parsed.endDate,
                     rawText: strippedText,
@@ -2154,9 +2302,9 @@
                     updatedByName: staffDisplayLabel(myStaffStatus)
                 });
 
-                // Only touches the cost if this edit actually contained a price line —
-                // otherwise an existing cost (set earlier, possibly manually by an
-                // admin/owner) is left exactly as it was.
+                // Only touches the income if this edit actually contained a price line, or
+                // the admin/owner explicitly typed one into the Income field — otherwise an
+                // existing income entry (set earlier) is left exactly as it was.
                 if (price !== null) {
                     setDoc(doc(db, 'bookingFinancials', id), {
                         cost: price,
@@ -2194,7 +2342,7 @@
                 if (target) {
                     const range = target.startDate === target.endDate ? target.startDate : `${target.startDate} to ${target.endDate}`;
                     addDoc(collection(db, 'deletionLog'), {
-                        bookingSummary: `${target.rawText.split('\n')[0]} (${range})`,
+                        bookingSummary: `${bookingDisplayName(target)} (${range})`,
                         deletedByEmail: currentUser.email,
                         deletedByName: staffDisplayLabel(myStaffStatus),
                         deletedAt: serverTimestamp()
@@ -2210,13 +2358,17 @@
 
         // SAMPLE LOADER FOR TESTING
         function loadSampleText(type) {
+            const nameInput = document.getElementById('bookingNameInput');
             const textarea = document.getElementById('rawTextInput');
             if (type === 1) {
-                textarea.value = "Jane de leon\nOctober 31 2026\nDay tour 8am to 5pm\n7th birthday celebration\n100pax";
+                nameInput.value = "Jane de Leon";
+                textarea.value = "October 31 2026\nDay tour 8am to 5pm\n7th birthday celebration\n100pax";
             } else if (type === 2) {
-                textarea.value = "Santos Night Swim\nNov 5 2026\nNight Tour 7pm to 7am\nPrivate Pool Access\n30pax";
+                nameInput.value = "Santos Night Swim";
+                textarea.value = "Nov 5 2026\nNight Tour 7pm to 7am\nPrivate Pool Access\n30pax";
             } else {
-                textarea.value = "Carlos & Maria Wedding\nNov 12 to Nov 14 2026\nFull Garden Venue + Pavilion + Catering\nVIP Guest Accommodations\n₱50,000 Deposit Received";
+                nameInput.value = "Carlos & Maria Wedding";
+                textarea.value = "Nov 12 to Nov 14 2026\nFull Garden Venue + Pavilion + Catering\nVIP Guest Accommodations\n₱50,000 Deposit Received";
             }
         }
 
@@ -2260,7 +2412,7 @@
             }
 
             const matches = bookings
-                .filter(b => b.rawText.toLowerCase().includes(searchQuery))
+                .filter(b => b.rawText.toLowerCase().includes(searchQuery) || bookingDisplayName(b).toLowerCase().includes(searchQuery))
                 .sort((a, b) => a.startDate.localeCompare(b.startDate))
                 .slice(0, 15);
 
@@ -2268,10 +2420,9 @@
                 ? `<div class="p-3 text-xs text-slate-500 text-center">No bookings match "${escapeHtml(searchQuery)}".</div>`
                 : matches.map(b => {
                     const range = b.startDate === b.endDate ? b.startDate : `${b.startDate} to ${b.endDate}`;
-                    const firstLine = b.rawText.split('\n')[0];
                     return `
                         <button onclick="jumpToSearchResult('${b.startDate}')" class="w-full text-left p-3 hover:bg-dark-700/80 transition">
-                            <p class="text-xs font-semibold text-slate-100 truncate">${escapeHtml(firstLine)}</p>
+                            <p class="text-xs font-semibold text-slate-100 truncate">${escapeHtml(bookingDisplayName(b))}</p>
                             <p class="text-[10px] text-gold-400">${range}</p>
                         </button>
                     `;
